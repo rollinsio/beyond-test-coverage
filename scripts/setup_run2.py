@@ -155,7 +155,7 @@ def start_script(worktree: Path) -> str:
         set -euo pipefail
         cd "{worktree}"
         # bench.coveragerc is copied here by setup_run2.py; don't re-install.
-        exec claude --permission-mode auto --model claude-opus-4-7 "$(cat .rex_prompt.md)"
+        exec claude --permission-mode auto --model claude-opus-4-8 "$(cat .rex_prompt.md)"
         """
     )
 

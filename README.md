@@ -18,7 +18,7 @@ cd /Users/rollins/experimentalCode/unit-testing-tests/llm-testgen-bench
 # Run-1 worktrees are NOT touched.
 python scripts/setup_run2.py
 
-# Open 9 iTerm tabs, one per worktree, running Opus 4.7 with the prompt.
+# Open 9 iTerm tabs, one per worktree, running Opus 4.8 with the prompt.
 ./scripts/launch_run2.sh
 ```
 

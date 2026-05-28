@@ -22,6 +22,14 @@ The defining shift from Run 1: **the success criterion is winning a
 multi-axis quality scorecard, not hitting a coverage number.**
 Coverage becomes a non-regression floor only.
 
+**Model:** Run 2 uses **Claude Opus 4.8** (`claude-opus-4-8`). Run 1
+used Opus 4.7. A model change is a confound for any cross-run
+comparison; we accept it because (a) Opus 4.8 is the model we'd
+actually deploy now and (b) Run 1 + Run 2 differ on so many prompt
+axes that isolating the model effect from the prompt-design effect
+was never going to be clean anyway. Future runs should hold the
+model fixed until the prompt has stabilized.
+
 ### Added
 - `prompts/run-2/quality_scorecard.md` — multi-axis quality goal (axes A–F: anti-fragility counts, rigor signals, mocking footprint, LOC efficiency, suite correctness, coverage floor). The session computes a baseline scorecard at the start and races to beat it.
 - `prompts/run-2/common_header.md` — reframes coverage as a floor; forbids git-history recovery; forbids `pip install -e .` from worktrees; names framework primitives per repo.
