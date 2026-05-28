@@ -1,0 +1,9 @@
+[run]
+branch = True
+source = itsdangerous
+
+[report]
+exclude_also =
+    if t.TYPE_CHECKING
+    raise NotImplementedError
+    : \.{3}
