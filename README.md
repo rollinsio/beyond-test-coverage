@@ -41,6 +41,13 @@ the same as Run 1 — see `scripts/verify_run.sh` and the structure of
   across all three arms (Run 1 → r2b → Run 2), the model-vs-prompt
   decomposition (2/9 → 8/9 → 9/9), the coverage-floor caveat, and the
   full table of prompt-design changes with measured outcomes.
+- **Run 3 results at a glance (cross-language):** open
+  [`docs/run3-results.html`](docs/run3-results.html) — the 18-arm JS/TS +
+  Go benchmark (6 repos × oneshot/iter2/iter20). **All 18 arms beat their
+  baseline**; the dashboard shows the per-axis win/tie/loss distribution,
+  the oneshot-red / iterative-green policy split, the full per-arm matrix,
+  and the B.1 count-vs-ratio caveat (every loss in the run is B.1). See
+  [FINDINGS.md](FINDINGS.md) §15–19.
 
 ## Repository layout
 
@@ -56,14 +63,19 @@ the same as Run 1 — see `scripts/verify_run.sh` and the structure of
 ├── baseline_summary.md   # Run 1 baseline coverage figures
 ├── configs/              # versioned bench.coveragerc per repo
 ├── docs/
-│   └── scorecard-results.html  # interactive axes before/after + changes dashboard
+│   ├── scorecard-results.html  # Run 1→2 Python axes before/after + changes dashboard
+│   └── run3-results.html       # Run 3 cross-language (JS/TS + Go) 18-arm dashboard
 ├── prompts/
-│   └── run-2/            # Run 2 prompt set (scorecard-anchored)
+│   ├── run-2/            # Run 2 prompt set (scorecard-anchored, Python)
+│   └── run-3/            # Run 3 prompt set (language-parameterized: JS/TS + Go)
 ├── reports/              # 9 per-run reports + VERIFICATION + index
 ├── runs/
 │   └── run-1.md          # preserved Run 1 worktree inventory
 └── scripts/
     ├── setup_run2.py     # creates Run 2 worktrees + materializes prompts
+    ├── setup_run3.py     # creates the 18 Run 3 (JS/Go) worktrees + deps + prompts
+    ├── score_run3.py     # Run 3 gen-vs-baseline recompute (multi-language)
+    ├── scorer_check.py   # baseline-only JS/Go profile validation
     ├── launch_run2.sh    # opens 9 iTerm tabs for Run 2
     ├── verify_run.sh     # re-runs a single worktree's suite for verification
     ├── aggregate_results.py  # cross-worktree coverage summary; --run N selects wt-rN-*
