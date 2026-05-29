@@ -71,7 +71,7 @@ PROFILES = {
     # Jest / Vitest / Mocha+Chai+Sinon / node:test. Heuristic, best-effort.
     "js": {
         "exts": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"],
-        "test_file": r"\.(?:test|spec)\.[cm]?[jt]sx?$|[/\\]__tests__[/\\]",
+        "test_file": r"\.(?:test|spec)s?\.[cm]?[jt]sx?$|[/\\]__tests__[/\\]|[/\\]tests?[/\\].*\.[cm]?[jt]sx?$",
         "test_def": r"\b(?:it|test)\s*(?:\.\s*(?:only|skip|concurrent|each|failing|todo|sequential))?\s*\(",
         "param": r"\b(?:it|test|describe)\s*\.\s*each\b",
         "validated": False,
@@ -165,8 +165,11 @@ def _iter_test_files(target: Path, profile: dict, compiled: dict):
         if target.suffix in exts:
             yield target
         return
+    skip = {"node_modules", ".git", "vendor", "coverage"}
     for p in sorted(target.rglob("*")):
         if not p.is_file() or p.suffix not in exts:
+            continue
+        if skip & set(p.parts):
             continue
         if compiled["test_file"].search(str(p)):
             yield p

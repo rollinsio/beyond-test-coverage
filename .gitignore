@@ -8,6 +8,13 @@
 /itsdangerous/
 /httpx/
 /requests/
+# Run-3 JS/TS + Go validation targets (third-party clones, same policy as above)
+/zod/
+/jsonwebtoken/
+/express/
+/golang-jwt/
+/chi/
+/gjson/
 
 # Python + tooling artifacts (in case any leak into the root)
 __pycache__/
