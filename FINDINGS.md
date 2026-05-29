@@ -7,7 +7,7 @@ Each Run-N entry preserves the worktrees and reports that produced it.
 | Run | Date       | Prompt set         | Worktree inventory      | Reports                  |
 |-----|------------|--------------------|-------------------------|--------------------------|
 | 1   | 2026-05-28 | (initial — embedded in plan doc) | [runs/run-1.md](runs/run-1.md) | [reports/](reports/) |
-| 2   | _pending_  | [prompts/run-2/](prompts/run-2/) | _to be created — wt-r2-*_ | _pending_ |
+| 2   | 2026-05-28 | [prompts/run-2/](prompts/run-2/) | `wt-r2-*` (Opus 4.8) + `wt-r2b-*` (Opus 4.7 control) | `results-run2*.{json,md}`, `results-r2b*.{json,md}` |
 
 ---
 
@@ -234,6 +234,148 @@ multi-axis goals.
 
 ---
 
-## Run 2 — pending
+## Run 2 — 2026-05-28 findings
 
-To be filled in after Run 2 executes.
+Run 2 = **Opus 4.8** + the scorecard-centered prompt set in
+[prompts/run-2/](prompts/run-2/). That changes *both* the model and the
+prompt versus Run 1, so we added a control arm — **r2b** = **Opus 4.7** + the
+*byte-identical* Run-2 prompts (only the substituted worktree path differs).
+The three points decompose the confound cleanly:
+
+| arm    | model    | prompts              | effort |
+|--------|----------|----------------------|--------|
+| Run 1  | Opus 4.7 | coverage-goal (old)  | xhigh  |
+| r2b    | Opus 4.7 | scorecard-goal (new) | xhigh  |
+| r2     | Opus 4.8 | scorecard-goal (new) | xhigh  |
+
+Run 1 → r2b isolates the **prompt** change (model held at 4.7·xhigh); r2b → r2
+isolates the **model** change (prompts held). All three are scored by
+`scripts/score_run2.py`, which applies *one* identical set of mechanical
+measurements — the 8 auto-countable scorecard axes — to all 9 generated suites
+and the 3 human baselines, sidestepping the mutually-incompatible self-reported
+`scorecard.json` shapes each session emitted. See
+`results-{run1,run2,r2b}-scorecard.{md,json}` and the coverage tables in
+`results-{run2,r2b}.md`.
+
+### 10. The prompt redesign dominates; the model bump is a marginal top-up
+
+"Beats its own baseline" on the auto-countable fragility axes:
+
+| worktree              | Run 1 (4.7·old) | r2b (4.7·new) | r2 (4.8·new) |
+|-----------------------|:---------------:|:-------------:|:------------:|
+| itsdangerous/oneshot  | ✅ | ✅ | ✅ |
+| itsdangerous/iter2    | ❌ | ✅ | ✅ |
+| itsdangerous/iter20   | ❌ | ✅ | ✅ |
+| httpx/oneshot         | ✅ | ✅ | ✅ |
+| httpx/iter2           | ✅ | ✅ | ✅ |
+| httpx/iter20          | ❌ | ✅ | ✅ |
+| requests/oneshot      | ❌ | ❌ | ✅ |
+| requests/iter2        | ❌ | ✅ | ✅ |
+| requests/iter20       | ❌ | ✅ | ✅ |
+| **total**             | **3 / 9** | **8 / 9** | **9 / 9** |
+
+- **Prompt effect** (Run 1 → r2b, model fixed at 4.7): **3/9 → 8/9 (+5).**
+- **Model effect** (r2b → r2, prompts fixed): **8/9 → 9/9 (+1).**
+
+The scorecard-centered prompt rewrite accounts for ~5× the movement of the
+4.7→4.8 model bump. The model bump's sole flip is requests/oneshot — a
+single-pass, no-repair policy, i.e. the case where raw model quality has the
+least chance to be rescued by iteration.
+
+**Caveat — the auto-scorer is a generous floor, not the verdict.** It counts
+only 8 mechanical axes (A.1/A.2/A.4/A.5/C.1/B.1/D.1/D.2) and ignores the
+semantic ones (A.3 tautological readbacks, A.6 hand-coded charsets, B.2
+boundaries, B.3 framework-I/O, E.* correctness/REPL). It is markedly more
+generous than Run 1's hand audit, which judged only ~1/9 truly better (and
+flagged httpx/iter20 as illegitimate — see Finding 3). Run 1's 3/9 here is
+therefore inflated relative to the careful verdict. But the *same* generous
+instrument is applied to all three arms, so the **deltas** — the actual
+decomposition — hold even though the absolute levels are soft.
+
+### 11. Per-axis: the prompt solved fragility; the model owned one axis
+
+Totals across the 9 suites in each arm (baseline totals differ per repo; these
+are gen-side sums, directional):
+
+| axis (↓ = lower better)            | Run 1 | r2b | r2 | who moved it |
+|------------------------------------|------:|----:|---:|--------------|
+| A.1 substring-match asserts (↓)    | 65    | 9   | 0  | **prompt** (86% gone on 4.7 alone; 100% on 4.8) |
+| C.1 real-mock LOC (↓)              | 27    | 2   | 0  | **prompt** |
+| D.2 parametrize ratio (↑, per-test)| ≤0.08 | 0.05–0.25 | 0.10–0.27 | **prompt** |
+| A.2 private-symbol uses (↓, noisy) | 185   | 118 | 59 | **model** (prompt −36%, model another −50%) |
+
+A.1, C.1, D.2 — the headline patterns from Finding 5 (substring matching,
+real mocking, no-parametrize unrolling) — are essentially solved by the prompt
+change alone (r2b, still on the old model). A.2 (reaching for private symbols)
+is the lone axis where the 4.8 model contributed *more* than the prompt,
+roughly halving the count again. Read A.2 as a trend, not an absolute — its
+regex matches any `obj._attr(` call, not only imports of private names.
+
+### 12. Winning the fragility scorecard ≠ passing the full Run-2 goal
+
+The "better=YES" verdict above measures fragility axes only; it does **not**
+enforce the coverage non-regression floor that is also part of the Run-2 goal.
+Coverage (`results-run2.md`) shows the two **oneshot** arms in r2 breach it:
+
+| r2 arm           | Δ line  | Δ branch |
+|------------------|--------:|---------:|
+| httpx/oneshot    | −6.96 % | −14.57 % |
+| requests/oneshot | −3.17 % |  −6.84 % |
+
+oneshot is a single pass with no repair, so this is the policy's expected
+failure mode — but it means "wins the fragility scorecard" and "is a strictly
+better suite" diverge for those two arms. Every iter2/iter20 arm holds or beats
+the floor (itsdangerous/iter20 +2.35 line, requests/iter20 +3.34 line / +3.36
+branch).
+
+**Action for Run 3:** the scorecard tally must be *gated* on the coverage
+floor — an arm that regresses coverage cannot be scored "better," however clean
+its fragility axes. Otherwise oneshot wins keep flattering the headline.
+
+### 13. iter20 now spends its budget — and 4.8 plateaus sooner than 4.7
+
+Run 1 Finding 2 was that iter20 stalled at 2–3 iterations once coverage parity
+was hit. The new stop condition ("3 consecutive iterations without scorecard
+improvement, else 20") fixes it:
+
+| iter20 arm   | Run 1 | r2b (4.7) | r2 (4.8) |
+|--------------|:-----:|:---------:|:--------:|
+| itsdangerous |   2   |    17     |    9     |
+| httpx        |   3   |    10     |    7     |
+| requests     |  ~2   |    11     |    6     |
+
+Both new-prompt arms iterate far more (avg ~2.3 → ~12.7 on 4.7, ~7.3 on 4.8).
+Notably **4.8 plateaus sooner than 4.7 on identical prompts** — it satisfies
+the no-improvement stop in fewer rounds, consistent with producing
+higher-quality suites earlier rather than grinding toward them.
+
+### 14. Prediction scorecard (Run 1 → Run 2)
+
+The five falsifiable predictions from `CHANGELOG.md`:
+
+| # | Prediction                              | Verdict | Evidence |
+|---|-----------------------------------------|:-------:|----------|
+| 1 | Substring-match asserts drop >80%       | ✅ | A.1 total 65 → 0 (r2); → 9 on r2b = 86%, so prompt-attributable |
+| 2 | Private-symbol imports → zero           | ⚠️ | A.2 185 → 59: large drop, but **not zero**; proxy is noisy (matches any `obj._attr(`) |
+| 3 | No worktree git-restores baseline tests | ✅ | max identical-to-baseline = 3 empty `__init__.py` markers; Run 1 httpx/iter20 was 31/32 *real* files |
+| 4 | iter20 iterations rise toward budget    | ✅ | 2–3 → 6–9 (r2), 10–17 (r2b) |
+| 5 | Scorecard tally positive for ≥5/9       | ✅ | r2 9/9, r2b 8/9 |
+
+The seven Run-1 prediction-table rows (Finding 5/§"What we want to test")
+map onto these: #1 anti-fragility → preds 1+2 (substring solved, private
+reduced not zeroed); #2 git recovery → pred 3 (✅); #3 REPL verification →
+every Run-2 session left a `repl_verifications.log` (process followed; broken-
+test count not independently re-run here); #4 iter20 budget → pred 4 (✅);
+#5 framework I/O fixtures → `mock_framework` LOC present in every httpx/requests
+arm (62–153 LOC in r2), i.e. real-I/O primitives used as intended; #6/#7
+SUMMARY-format and `pip install -e .` hermicity → process constraints, held.
+
+### Net for Run 3
+
+The metric you point the model at dominates the suite you get (Finding 9
+confirmed): pointing at a multi-axis quality scorecard instead of coverage
+moved 3/9 → 8/9 on the *same* model. The model upgrade is a real but small
+top-up. The open Run-3 levers: (a) gate the scorecard on the coverage floor
+(Finding 12); (b) score the semantic axes (A.3/A.6/B.2/B.3/E.*) the auto-tally
+omits, since those are where Run 1's "inflated 3/9" really lived; (c) hold the
+model fixed now that the prompt has stabilized, per the original Run-2 note.

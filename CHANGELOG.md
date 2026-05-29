@@ -62,7 +62,10 @@ model fixed until the prompt has stabilized.
 
 ### Tooling fixes
 - `scripts/setup_run2.py` includes `quality_scorecard.md` in composed prompts (the original draft omitted it; fixed before any Run 2 worktree is materialized).
-- `scripts/aggregate_results.py` src-prefix filter currently expects relative paths; coverage JSONs store absolute. **Not yet fixed.** Pending.
+- `scripts/aggregate_results.py` src-prefix filter expected relative paths; coverage JSONs store *either* relative or absolute keys (absolute when the package resolves via an editable install). **Fixed:** now matches on a normalized path segment (`_matches_src`/`_is_test_file`), so both forms count. Re-running `--run 1` recovers the verified Run-1 figures (itsdangerous + requests/oneshot+iter2 were silently reporting 0.00 %).
+- `scripts/aggregate_results.py` mock metric split into `mock_real_loc` (`MagicMock|Mock(|patch(|mocker|unittest.mock`) and `mock_framework_loc` (`MockTransport|WSGITransport|ASGITransport|monkeypatch|httpbin`), per Finding 6.
+- `scripts/aggregate_results.py` parameterized by `--run N` (default 2 → targets `wt-r2-*`); writes `results-run<N>.{json,md}` so Run 1's preserved `results.{json,md}` are never clobbered.
+- **Still pending:** the aggregator reads coverage only. It does not yet read the per-worktree `final_scorecard.json` to produce a cross-worktree scorecard tally (the actual Run-2 goal). That reader needs a real `final_scorecard.json` sample to fix its schema against — to be added once the first Run-2 session emits one.
 
 ### Falsifiable predictions for Run 2
 See `prompts/run-2/README.md`. Headline predictions:
@@ -71,6 +74,39 @@ See `prompts/run-2/README.md`. Headline predictions:
 - No worktree restores baseline tests from git.
 - iter20 iterations used rises from Run 1's 2–3 toward the 20 budget.
 - Final scorecard tally is positive for ≥5 of 9 worktrees.
+
+### Control arm `r2b` — Opus 4.7 + xhigh (added 2026-05-28, post-execution)
+
+Run 1 (Opus 4.7, old prompts) → Run 2 (Opus 4.8, new prompts) confounds the
+**model** change with the **prompt** change. To decompose them we added a
+control arm that holds the prompts fixed and reverts only the model:
+
+- **Worktrees:** `wt-r2b-<policy>` on branches `rex-r2b-wt-<policy>` (9 arms).
+- **Prompts:** byte-identical to the `wt-r2-*` (Run 2) prompts except the
+  substituted worktree path — verified by diff. Same instrument.
+- **Model:** `claude-opus-4-7`, `--effort xhigh` (matches Run 2's 4.8 xhigh; the
+  global `effortLevel: xhigh` setting applied to both).
+- **The two comparisons this enables:**
+  - r2 (4.8) vs r2b (4.7), prompts fixed → **model effect**.
+  - r2b (4.7, new prompts) vs Run 1 (4.7, old prompts) → **prompt effect**.
+    Confirmed clean: Run 1 also ran Opus 4.7 at xhigh (xhigh was the default
+    `effortLevel` then too), so model + effort are held fixed across this leg.
+
+So the three points form a clean decomposition — Run 1 (4.7·xhigh·coverage-prompts)
+→ r2b (4.7·xhigh·scorecard-prompts) isolates the prompt change; r2b → r2
+(4.8·xhigh·scorecard-prompts) isolates the model change. No remaining confound.
+
+### Tooling (added for Run 2 execution + analysis)
+- `scripts/setup_run2.py` parameterized: `--label` (worktree/branch prefix),
+  `--model`, `--effort`. Defaults reproduce the original 4.8 `r2` behavior;
+  `--label r2b --model claude-opus-4-7 --effort xhigh` built the control.
+- `scripts/launch_run2.sh` takes an optional label arg (default `r2`); `launch_run2.sh r2b`.
+- `scripts/score_run2.py` (new): independent recompute of the auto-countable
+  scorecard axes (A.1/A.2/A.4/A.5/C.1/B.1/D.1/D.2) applied uniformly to all
+  generated suites + baselines — sidesteps the mutually-incompatible
+  self-reported `scorecard.json` shapes each session emitted. `--run`/`--label`.
+- `scripts/aggregate_results.py` (coverage) gained `--label`; writes
+  `results-<tag>.{json,md}`.
 
 ---
 
