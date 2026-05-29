@@ -1,0 +1,446 @@
+[
+  {
+    "repo": "itsdangerous",
+    "policy": "oneshot",
+    "has_metrics": true,
+    "baseline_line_pct": 97.65,
+    "baseline_branch_pct": 94.9,
+    "final_line_pct": 100.0,
+    "final_branch_pct": 98.98,
+    "line_delta_pct": 2.35,
+    "branch_delta_pct": 4.08,
+    "test_loc": 1736,
+    "mock_real_loc": 0,
+    "mock_framework_loc": 0,
+    "mock_real_ratio": 0.0,
+    "iterations": [],
+    "summary_md_path": "itsdangerous/wt-r2b-oneshot/.rex_metrics/SUMMARY.md",
+    "final_cov_path": "itsdangerous/wt-r2b-oneshot/.rex_metrics/generated_coverage.json"
+  },
+  {
+    "repo": "itsdangerous",
+    "policy": "iter2",
+    "has_metrics": true,
+    "baseline_line_pct": 97.65,
+    "baseline_branch_pct": 94.9,
+    "final_line_pct": 100.0,
+    "final_branch_pct": 96.94,
+    "line_delta_pct": 2.35,
+    "branch_delta_pct": 2.04,
+    "test_loc": 1596,
+    "mock_real_loc": 0,
+    "mock_framework_loc": 0,
+    "mock_real_ratio": 0.0,
+    "iterations": [
+      {
+        "iter": 1,
+        "line_pct": 100.0,
+        "branch_pct": 96.94,
+        "statements": 425
+      },
+      {
+        "iter": 2,
+        "line_pct": 100.0,
+        "branch_pct": 96.94,
+        "statements": 425
+      }
+    ],
+    "summary_md_path": null,
+    "final_cov_path": "itsdangerous/wt-r2b-iter2/.rex_metrics/iter_2/coverage.json"
+  },
+  {
+    "repo": "itsdangerous",
+    "policy": "iter20",
+    "has_metrics": true,
+    "baseline_line_pct": 97.65,
+    "baseline_branch_pct": 94.9,
+    "final_line_pct": 100.0,
+    "final_branch_pct": 98.98,
+    "line_delta_pct": 2.35,
+    "branch_delta_pct": 4.08,
+    "test_loc": 1703,
+    "mock_real_loc": 0,
+    "mock_framework_loc": 0,
+    "mock_real_ratio": 0.0,
+    "iterations": [
+      {
+        "iter": 1,
+        "line_pct": 100.0,
+        "branch_pct": 97.96,
+        "statements": 425
+      },
+      {
+        "iter": 2,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 3,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 4,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 5,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 6,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 7,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 8,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 9,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 10,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 11,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 12,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 13,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 14,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 15,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 16,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      },
+      {
+        "iter": 17,
+        "line_pct": 100.0,
+        "branch_pct": 98.98,
+        "statements": 425
+      }
+    ],
+    "summary_md_path": null,
+    "final_cov_path": "itsdangerous/wt-r2b-iter20/.rex_metrics/iter_17/coverage.json"
+  },
+  {
+    "repo": "httpx",
+    "policy": "oneshot",
+    "has_metrics": true,
+    "baseline_line_pct": 100.0,
+    "baseline_branch_pct": 97.27,
+    "final_line_pct": 100.0,
+    "final_branch_pct": 97.75,
+    "line_delta_pct": 0.0,
+    "branch_delta_pct": 0.48,
+    "test_loc": 6951,
+    "mock_real_loc": 2,
+    "mock_framework_loc": 139,
+    "mock_real_ratio": 0.0003,
+    "iterations": [],
+    "summary_md_path": "httpx/wt-r2b-oneshot/.rex_metrics/SUMMARY.md",
+    "final_cov_path": "httpx/wt-r2b-oneshot/.rex_metrics/generated_coverage.json"
+  },
+  {
+    "repo": "httpx",
+    "policy": "iter2",
+    "has_metrics": true,
+    "baseline_line_pct": 100.0,
+    "baseline_branch_pct": 97.27,
+    "final_line_pct": 98.76,
+    "final_branch_pct": 95.85,
+    "line_delta_pct": -1.24,
+    "branch_delta_pct": -1.42,
+    "test_loc": 7051,
+    "mock_real_loc": 0,
+    "mock_framework_loc": 158,
+    "mock_real_ratio": 0.0,
+    "iterations": [
+      {
+        "iter": 0,
+        "line_pct": 0.0,
+        "branch_pct": 0.0,
+        "statements": 3134
+      },
+      {
+        "iter": 1,
+        "line_pct": 96.55,
+        "branch_pct": 91.71,
+        "statements": 3134
+      },
+      {
+        "iter": 2,
+        "line_pct": 98.76,
+        "branch_pct": 95.85,
+        "statements": 3134
+      }
+    ],
+    "summary_md_path": null,
+    "final_cov_path": "httpx/wt-r2b-iter2/.rex_metrics/iter_2/cov.json"
+  },
+  {
+    "repo": "httpx",
+    "policy": "iter20",
+    "has_metrics": true,
+    "baseline_line_pct": 100.0,
+    "baseline_branch_pct": 97.27,
+    "final_line_pct": 100.0,
+    "final_branch_pct": 97.99,
+    "line_delta_pct": 0.0,
+    "branch_delta_pct": 0.72,
+    "test_loc": 9978,
+    "mock_real_loc": 2,
+    "mock_framework_loc": 191,
+    "mock_real_ratio": 0.0002,
+    "iterations": [
+      {
+        "iter": 1,
+        "line_pct": 92.18,
+        "branch_pct": 82.11,
+        "statements": 3134
+      },
+      {
+        "iter": 2,
+        "line_pct": 94.77,
+        "branch_pct": 86.37,
+        "statements": 3134
+      },
+      {
+        "iter": 3,
+        "line_pct": 96.62,
+        "branch_pct": 90.64,
+        "statements": 3134
+      },
+      {
+        "iter": 4,
+        "line_pct": 98.5,
+        "branch_pct": 94.08,
+        "statements": 3134
+      },
+      {
+        "iter": 5,
+        "line_pct": 98.5,
+        "branch_pct": 94.08,
+        "statements": 3134
+      },
+      {
+        "iter": 6,
+        "line_pct": 99.01,
+        "branch_pct": 95.5,
+        "statements": 3134
+      },
+      {
+        "iter": 7,
+        "line_pct": 99.01,
+        "branch_pct": 95.5,
+        "statements": 3134
+      },
+      {
+        "iter": 8,
+        "line_pct": 99.49,
+        "branch_pct": 96.8,
+        "statements": 3134
+      },
+      {
+        "iter": 9,
+        "line_pct": 100.0,
+        "branch_pct": 97.99,
+        "statements": 3134
+      },
+      {
+        "iter": 10,
+        "line_pct": 100.0,
+        "branch_pct": 97.99,
+        "statements": 3134
+      }
+    ],
+    "summary_md_path": null,
+    "final_cov_path": "httpx/wt-r2b-iter20/.rex_metrics/iter_10/coverage.json"
+  },
+  {
+    "repo": "requests",
+    "policy": "oneshot",
+    "has_metrics": true,
+    "baseline_line_pct": 87.86,
+    "baseline_branch_pct": 79.48,
+    "final_line_pct": 88.32,
+    "final_branch_pct": 78.98,
+    "line_delta_pct": 0.46,
+    "branch_delta_pct": -0.5,
+    "test_loc": 3977,
+    "mock_real_loc": 0,
+    "mock_framework_loc": 25,
+    "mock_real_ratio": 0.0,
+    "iterations": [],
+    "summary_md_path": "requests/wt-r2b-oneshot/.rex_metrics/SUMMARY.md",
+    "final_cov_path": "requests/wt-r2b-oneshot/.rex_metrics/generated_coverage.json"
+  },
+  {
+    "repo": "requests",
+    "policy": "iter2",
+    "has_metrics": true,
+    "baseline_line_pct": 87.86,
+    "baseline_branch_pct": 79.48,
+    "final_line_pct": 89.13,
+    "final_branch_pct": 79.73,
+    "line_delta_pct": 1.27,
+    "branch_delta_pct": 0.25,
+    "test_loc": 4248,
+    "mock_real_loc": 1,
+    "mock_framework_loc": 91,
+    "mock_real_ratio": 0.0002,
+    "iterations": [
+      {
+        "iter": 0,
+        "line_pct": 29.36,
+        "branch_pct": 3.86,
+        "statements": 2364
+      },
+      {
+        "iter": 1,
+        "line_pct": 89.34,
+        "branch_pct": 80.1,
+        "statements": 2364
+      },
+      {
+        "iter": 2,
+        "line_pct": 89.13,
+        "branch_pct": 79.73,
+        "statements": 2364
+      }
+    ],
+    "summary_md_path": null,
+    "final_cov_path": "requests/wt-r2b-iter2/.rex_metrics/iter_2/coverage.json"
+  },
+  {
+    "repo": "requests",
+    "policy": "iter20",
+    "has_metrics": true,
+    "baseline_line_pct": 87.86,
+    "baseline_branch_pct": 79.48,
+    "final_line_pct": 90.57,
+    "final_branch_pct": 82.34,
+    "line_delta_pct": 2.71,
+    "branch_delta_pct": 2.86,
+    "test_loc": 4879,
+    "mock_real_loc": 0,
+    "mock_framework_loc": 108,
+    "mock_real_ratio": 0.0,
+    "iterations": [
+      {
+        "iter": 1,
+        "line_pct": 88.49,
+        "branch_pct": 78.23,
+        "statements": 2364
+      },
+      {
+        "iter": 2,
+        "line_pct": 90.4,
+        "branch_pct": 82.09,
+        "statements": 2364
+      },
+      {
+        "iter": 3,
+        "line_pct": 90.4,
+        "branch_pct": 82.09,
+        "statements": 2364
+      },
+      {
+        "iter": 4,
+        "line_pct": 90.4,
+        "branch_pct": 82.09,
+        "statements": 2364
+      },
+      {
+        "iter": 5,
+        "line_pct": 90.4,
+        "branch_pct": 82.09,
+        "statements": 2364
+      },
+      {
+        "iter": 6,
+        "line_pct": 90.23,
+        "branch_pct": 81.59,
+        "statements": 2364
+      },
+      {
+        "iter": 7,
+        "line_pct": 90.23,
+        "branch_pct": 81.59,
+        "statements": 2364
+      },
+      {
+        "iter": 8,
+        "line_pct": 90.57,
+        "branch_pct": 82.34,
+        "statements": 2364
+      },
+      {
+        "iter": 9,
+        "line_pct": 90.57,
+        "branch_pct": 82.34,
+        "statements": 2364
+      },
+      {
+        "iter": 10,
+        "line_pct": 90.57,
+        "branch_pct": 82.34,
+        "statements": 2364
+      },
+      {
+        "iter": 11,
+        "line_pct": 90.57,
+        "branch_pct": 82.34,
+        "statements": 2364
+      }
+    ],
+    "summary_md_path": null,
+    "final_cov_path": "requests/wt-r2b-iter20/.rex_metrics/iter_11/coverage.json"
+  }
+]

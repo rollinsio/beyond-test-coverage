@@ -1,0 +1,534 @@
+{
+  "baselines": {
+    "itsdangerous": {
+      "A1_substring_match": 4,
+      "A2_private_symbol": 10,
+      "A4_recomputed_crypto": 10,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 0,
+      "B1_fixed_vector": 0,
+      "parametrize": 7,
+      "test_count": 37,
+      "test_loc": 481,
+      "D1_loc_per_test": 13.0,
+      "D2_param_ratio": 0.189
+    },
+    "httpx": {
+      "A1_substring_match": 7,
+      "A2_private_symbol": 22,
+      "A4_recomputed_crypto": 1,
+      "A5_or_joined": 0,
+      "C1_mock_real": 3,
+      "C2_mock_framework": 136,
+      "B1_fixed_vector": 13,
+      "parametrize": 44,
+      "test_count": 539,
+      "test_loc": 8926,
+      "D1_loc_per_test": 16.56,
+      "D2_param_ratio": 0.082
+    },
+    "requests": {
+      "A1_substring_match": 9,
+      "A2_private_symbol": 18,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 340,
+      "B1_fixed_vector": 6,
+      "parametrize": 77,
+      "test_count": 345,
+      "test_loc": 5132,
+      "D1_loc_per_test": 14.88,
+      "D2_param_ratio": 0.223
+    }
+  },
+  "arms": [
+    {
+      "repo": "itsdangerous",
+      "policy": "oneshot",
+      "present": true,
+      "test_count": 159,
+      "test_loc": 1091,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 10,
+          "base": 4,
+          "verdict": "LOSS"
+        },
+        "A2_private_symbol": {
+          "gen": 9,
+          "base": 10,
+          "verdict": "WIN"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 10,
+          "base": 10,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 2,
+          "base": 0,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 6.86,
+          "base": 13.0,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.189,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 3,
+      "losses": 2,
+      "ties": 3,
+      "better": true
+    },
+    {
+      "repo": "itsdangerous",
+      "policy": "iter2",
+      "present": true,
+      "test_count": 176,
+      "test_loc": 1185,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 10,
+          "base": 4,
+          "verdict": "LOSS"
+        },
+        "A2_private_symbol": {
+          "gen": 15,
+          "base": 10,
+          "verdict": "LOSS"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 8,
+          "base": 10,
+          "verdict": "WIN"
+        },
+        "A5_or_joined": {
+          "gen": 1,
+          "base": 0,
+          "verdict": "LOSS"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 2,
+          "base": 0,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 6.73,
+          "base": 13.0,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.189,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 3,
+      "losses": 4,
+      "ties": 1,
+      "better": false
+    },
+    {
+      "repo": "itsdangerous",
+      "policy": "iter20",
+      "present": true,
+      "test_count": 163,
+      "test_loc": 1121,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 11,
+          "base": 4,
+          "verdict": "LOSS"
+        },
+        "A2_private_symbol": {
+          "gen": 8,
+          "base": 10,
+          "verdict": "WIN"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 12,
+          "base": 10,
+          "verdict": "LOSS"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 2,
+          "base": 0,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 6.88,
+          "base": 13.0,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.189,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 3,
+      "losses": 3,
+      "ties": 2,
+      "better": false
+    },
+    {
+      "repo": "httpx",
+      "policy": "oneshot",
+      "present": true,
+      "test_count": 444,
+      "test_loc": 4147,
+      "c2_mock_framework": 96,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 9,
+          "base": 7,
+          "verdict": "LOSS"
+        },
+        "A2_private_symbol": {
+          "gen": 5,
+          "base": 22,
+          "verdict": "WIN"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 3,
+          "verdict": "WIN"
+        },
+        "B1_fixed_vector": {
+          "gen": 6,
+          "base": 13,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 9.34,
+          "base": 16.56,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.002,
+          "base": 0.082,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 4,
+      "losses": 3,
+      "ties": 1,
+      "better": true
+    },
+    {
+      "repo": "httpx",
+      "policy": "iter2",
+      "present": true,
+      "test_count": 416,
+      "test_loc": 4251,
+      "c2_mock_framework": 143,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 16,
+          "base": 7,
+          "verdict": "LOSS"
+        },
+        "A2_private_symbol": {
+          "gen": 13,
+          "base": 22,
+          "verdict": "WIN"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 3,
+          "verdict": "WIN"
+        },
+        "B1_fixed_vector": {
+          "gen": 6,
+          "base": 13,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 10.22,
+          "base": 16.56,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.082,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 4,
+      "losses": 3,
+      "ties": 1,
+      "better": true
+    },
+    {
+      "repo": "httpx",
+      "policy": "iter20",
+      "present": true,
+      "test_count": 562,
+      "test_loc": 9306,
+      "c2_mock_framework": 147,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 7,
+          "base": 7,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": 23,
+          "base": 22,
+          "verdict": "LOSS"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 1,
+          "base": 1,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 3,
+          "base": 3,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 13,
+          "base": 13,
+          "verdict": "TIE"
+        },
+        "D1_loc_per_test": {
+          "gen": 16.56,
+          "base": 16.56,
+          "verdict": "TIE"
+        },
+        "D2_param_ratio": {
+          "gen": 0.078,
+          "base": 0.082,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 0,
+      "losses": 2,
+      "ties": 6,
+      "better": false
+    },
+    {
+      "repo": "requests",
+      "policy": "oneshot",
+      "present": true,
+      "test_count": 380,
+      "test_loc": 2587,
+      "c2_mock_framework": 87,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 1,
+          "base": 9,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 30,
+          "base": 18,
+          "verdict": "LOSS"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 2,
+          "base": 0,
+          "verdict": "LOSS"
+        },
+        "B1_fixed_vector": {
+          "gen": 6,
+          "base": 6,
+          "verdict": "TIE"
+        },
+        "D1_loc_per_test": {
+          "gen": 6.81,
+          "base": 14.88,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.223,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 2,
+      "losses": 3,
+      "ties": 3,
+      "better": false
+    },
+    {
+      "repo": "requests",
+      "policy": "iter2",
+      "present": true,
+      "test_count": 483,
+      "test_loc": 3981,
+      "c2_mock_framework": 42,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 1,
+          "base": 9,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 42,
+          "base": 18,
+          "verdict": "LOSS"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 21,
+          "base": 0,
+          "verdict": "LOSS"
+        },
+        "B1_fixed_vector": {
+          "gen": 4,
+          "base": 6,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 8.24,
+          "base": 14.88,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.223,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 2,
+      "losses": 4,
+      "ties": 2,
+      "better": false
+    },
+    {
+      "repo": "requests",
+      "policy": "iter20",
+      "present": true,
+      "test_count": 509,
+      "test_loc": 3767,
+      "c2_mock_framework": 123,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 9,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 40,
+          "base": 18,
+          "verdict": "LOSS"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 1,
+          "base": 0,
+          "verdict": "LOSS"
+        },
+        "B1_fixed_vector": {
+          "gen": 4,
+          "base": 6,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 7.4,
+          "base": 14.88,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.223,
+          "verdict": "LOSS"
+        }
+      },
+      "wins": 2,
+      "losses": 4,
+      "ties": 2,
+      "better": false
+    }
+  ]
+}
