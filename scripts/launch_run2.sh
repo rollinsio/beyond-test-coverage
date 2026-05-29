@@ -1,21 +1,20 @@
 #!/bin/bash
-# Launch the 9 Run-2 worktree sessions in iTerm2 tabs.
+# Launch the 9 Run-2 worktree sessions in iTerm tabs.
+# NB: the app scripts as "iTerm" (not "iTerm2") on this machine — iTerm v3.x.
 # Prereq: run scripts/setup_run2.py first to materialize worktrees and prompts.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-WORKTREES=(
-  "itsdangerous/wt-r2-oneshot"
-  "itsdangerous/wt-r2-iter2"
-  "itsdangerous/wt-r2-iter20"
-  "httpx/wt-r2-oneshot"
-  "httpx/wt-r2-iter2"
-  "httpx/wt-r2-iter20"
-  "requests/wt-r2-oneshot"
-  "requests/wt-r2-iter2"
-  "requests/wt-r2-iter20"
-)
+# Optional first arg = label (default r2). Use e.g. r2b for the Opus-4.7 control.
+LABEL="${1:-r2}"
+
+WORKTREES=()
+for repo in itsdangerous httpx requests; do
+  for pol in oneshot iter2 iter20; do
+    WORKTREES+=("$repo/wt-$LABEL-$pol")
+  done
+done
 
 # Sanity check: every worktree must exist
 for wt in "${WORKTREES[@]}"; do
@@ -32,14 +31,14 @@ done
 
 tmpscript="$(mktemp -t llmbench_r2_launcher).scpt"
 {
-  echo 'tell application "iTerm2"'
+  echo 'tell application "iTerm"'
   echo '    activate'
   echo '    set newWindow to (create window with default profile)'
   echo '    tell newWindow'
   first=1
   for wt in "${WORKTREES[@]}"; do
     path="$ROOT/$wt"
-    name="r2 $wt"
+    name="$LABEL $wt"
     if [ "$first" = "1" ]; then
       first=0
       cat <<EOF

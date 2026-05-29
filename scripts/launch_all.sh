@@ -1,5 +1,6 @@
 #!/bin/bash
-# Open 9 iTerm2 tabs (one per worktree) running each worktree's start.sh.
+# Open 9 iTerm tabs (one per worktree) running each worktree's start.sh.
+# NB: the app scripts as "iTerm" (not "iTerm2") on this machine — iTerm v3.x.
 # Each tab launches claude --permission-mode auto --model claude-opus-4-7
 # with the worktree's prompt as the initial user message.
 
@@ -22,7 +23,7 @@ WORKTREES=(
 # Build the AppleScript dynamically so each tab knows its own path.
 tmpscript="$(mktemp -t llmbench_launcher).scpt"
 {
-  echo 'tell application "iTerm2"'
+  echo 'tell application "iTerm"'
   echo '    activate'
   echo '    set newWindow to (create window with default profile)'
   echo '    tell newWindow'

@@ -116,9 +116,9 @@ def substitute(text: str, mapping: dict[str, str]) -> str:
     return text
 
 
-def build_prompt(repo: str, policy: str, parts: dict[str, str]) -> str:
+def build_prompt(repo: str, policy: str, parts: dict[str, str], label: str) -> str:
     meta = REPOS[repo]
-    wt = ROOT / repo / f"wt-r2-{policy}"
+    wt = ROOT / repo / f"wt-{label}-{policy}"
     base = ROOT / repo / "base"
     mapping = {
         "REPO": repo,
@@ -148,22 +148,23 @@ def build_prompt(repo: str, policy: str, parts: dict[str, str]) -> str:
     return body
 
 
-def start_script(worktree: Path) -> str:
+def start_script(worktree: Path, model: str, effort: str) -> str:
+    effort_flag = f" --effort {effort}" if effort else ""
     return textwrap.dedent(
         f"""\
         #!/bin/bash
         set -euo pipefail
         cd "{worktree}"
         # bench.coveragerc is copied here by setup_run2.py; don't re-install.
-        exec claude --permission-mode auto --model claude-opus-4-8 "$(cat .rex_prompt.md)"
+        exec claude --permission-mode auto --model {model}{effort_flag} "$(cat .rex_prompt.md)"
         """
     )
 
 
-def create_worktree(repo: str, policy: str) -> Path:
+def create_worktree(repo: str, policy: str, label: str) -> Path:
     base = ROOT / repo / "base"
-    wt = ROOT / repo / f"wt-r2-{policy}"
-    branch = f"rex-r2-wt-{policy}"
+    wt = ROOT / repo / f"wt-{label}-{policy}"
+    branch = f"rex-{label}-wt-{policy}"
     if wt.exists():
         print(f"  worktree exists: {wt}")
         return wt
@@ -185,6 +186,14 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--prompts-only", action="store_true",
                     help="Skip worktree creation; only (re)write prompts and start.sh.")
+    ap.add_argument("--label", default="r2",
+                    help="Worktree/branch label: wt-<label>-<policy> / rex-<label>-wt-<policy>. "
+                         "Default 'r2' (Opus 4.8). Use e.g. 'r2b' for a same-prompt control arm.")
+    ap.add_argument("--model", default="claude-opus-4-8",
+                    help="Model passed to `claude --model` in each start.sh. Default claude-opus-4-8.")
+    ap.add_argument("--effort", default="",
+                    help="Effort level passed to `claude --effort` (e.g. xhigh). "
+                         "Default empty = inherit from settings.")
     args = ap.parse_args()
 
     parts = load_prompt_parts()
@@ -192,9 +201,9 @@ def main() -> int:
     for repo in REPOS:
         for policy in POLICIES:
             if not args.prompts_only:
-                wt = create_worktree(repo, policy)
+                wt = create_worktree(repo, policy, args.label)
             else:
-                wt = ROOT / repo / f"wt-r2-{policy}"
+                wt = ROOT / repo / f"wt-{args.label}-{policy}"
                 if not wt.exists():
                     print(f"  SKIP (worktree missing, use without --prompts-only): {wt}")
                     continue
@@ -206,12 +215,12 @@ def main() -> int:
                 target.write_text(bench.read_text())
 
             # Materialize the prompt
-            prompt = build_prompt(repo, policy, parts)
+            prompt = build_prompt(repo, policy, parts, args.label)
             (wt / ".rex_prompt.md").write_text(prompt)
 
             # Materialize start.sh
             start = wt / "start.sh"
-            start.write_text(start_script(wt))
+            start.write_text(start_script(wt, args.model, args.effort))
             start.chmod(start.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
             written.append(str(wt))
