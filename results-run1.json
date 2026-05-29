@@ -145,9 +145,9 @@
     "line_delta_pct": 0.0,
     "branch_delta_pct": 2.73,
     "test_loc": 9306,
-    "mock_real_loc": 3,
+    "mock_real_loc": 0,
     "mock_framework_loc": 147,
-    "mock_real_ratio": 0.0003,
+    "mock_real_ratio": 0.0,
     "iterations": [
       {
         "iter": 1,
@@ -182,9 +182,9 @@
     "line_delta_pct": -2.24,
     "branch_delta_pct": -6.97,
     "test_loc": 2587,
-    "mock_real_loc": 2,
+    "mock_real_loc": 0,
     "mock_framework_loc": 87,
-    "mock_real_ratio": 0.0008,
+    "mock_real_ratio": 0.0,
     "iterations": [],
     "summary_md_path": "requests/wt-oneshot/.rex_metrics/SUMMARY.md",
     "final_cov_path": "requests/wt-oneshot/.rex_metrics/generated_coverage.json"
@@ -200,9 +200,9 @@
     "line_delta_pct": 4.53,
     "branch_delta_pct": 4.35,
     "test_loc": 3981,
-    "mock_real_loc": 21,
+    "mock_real_loc": 29,
     "mock_framework_loc": 42,
-    "mock_real_ratio": 0.0053,
+    "mock_real_ratio": 0.0073,
     "iterations": [
       {
         "iter": 0,

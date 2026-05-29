@@ -214,10 +214,9 @@ def test_python_c1_counts_clear_mock_idioms(tmp_path):
     assert score.measure(tmp_path, "python")["C1_mock_real"] == 3
 
 
-@pytest.mark.xfail(reason="C1 regex's trailing \\b drops patch('str')/Mock()/@patch — "
-                          "real-mock undercount; see scorer-js-go-profile-gaps memory",
-                   strict=True)
-def test_python_c1_should_count_patch_with_string_literal(tmp_path):
+def test_python_c1_counts_patch_string_and_bare_mock(tmp_path):
+    # Regression for the trailing-\b bug: the two most common idioms that the
+    # old regex dropped — patch('literal') and a bare Mock() — must both count.
     body = (
         "def test_x():\n"
         "    with patch('pkg.mod.func'):\n"   # the most common patch idiom
@@ -225,8 +224,15 @@ def test_python_c1_should_count_patch_with_string_literal(tmp_path):
         "    x = Mock()\n"                     # bare Mock() call
     )
     write(tmp_path, "test_x.py", body)
-    # A human counts two hand-mocks here; the regex currently counts zero.
     assert score.measure(tmp_path, "python")["C1_mock_real"] == 2
+
+
+def test_python_c1_does_not_double_count_mocker_patch(tmp_path):
+    # `mocker.patch(...)` is one mock; the lookbehind must stop `patch(` from
+    # counting on top of `mocker`.
+    body = "def test_x():\n    mocker.patch('pkg.f')\n"
+    write(tmp_path, "test_x.py", body)
+    assert score.measure(tmp_path, "python")["C1_mock_real"] == 1
 
 
 def test_python_c2_framework_primitives(tmp_path):

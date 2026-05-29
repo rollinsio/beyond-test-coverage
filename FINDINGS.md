@@ -266,18 +266,18 @@ and the 3 human baselines, sidestepping the mutually-incompatible self-reported
 | itsdangerous/oneshot  | ✅ | ✅ | ✅ |
 | itsdangerous/iter2    | ❌ | ✅ | ✅ |
 | itsdangerous/iter20   | ❌ | ✅ | ✅ |
-| httpx/oneshot         | ✅ | ✅ | ✅ |
-| httpx/iter2           | ✅ | ✅ | ✅ |
+| httpx/oneshot         | ❌ | ✅ | ✅ |
+| httpx/iter2           | ❌ | ✅ | ✅ |
 | httpx/iter20          | ❌ | ✅ | ✅ |
-| requests/oneshot      | ❌ | ❌ | ✅ |
+| requests/oneshot      | ✅ | ❌ | ✅ |
 | requests/iter2        | ❌ | ✅ | ✅ |
 | requests/iter20       | ❌ | ✅ | ✅ |
-| **total**             | **3 / 9** | **8 / 9** | **9 / 9** |
+| **total**             | **2 / 9** | **8 / 9** | **9 / 9** |
 
-- **Prompt effect** (Run 1 → r2b, model fixed at 4.7): **3/9 → 8/9 (+5).**
+- **Prompt effect** (Run 1 → r2b, model fixed at 4.7): **2/9 → 8/9 (+6).**
 - **Model effect** (r2b → r2, prompts fixed): **8/9 → 9/9 (+1).**
 
-The scorecard-centered prompt rewrite accounts for ~5× the movement of the
+The scorecard-centered prompt rewrite accounts for ~6× the movement of the
 4.7→4.8 model bump. The model bump's sole flip is requests/oneshot — a
 single-pass, no-repair policy, i.e. the case where raw model quality has the
 least chance to be rescued by iteration.
@@ -287,7 +287,7 @@ only 8 mechanical axes (A.1/A.2/A.4/A.5/C.1/B.1/D.1/D.2) and ignores the
 semantic ones (A.3 tautological readbacks, A.6 hand-coded charsets, B.2
 boundaries, B.3 framework-I/O, E.* correctness/REPL). It is markedly more
 generous than Run 1's hand audit, which judged only ~1/9 truly better (and
-flagged httpx/iter20 as illegitimate — see Finding 3). Run 1's 3/9 here is
+flagged httpx/iter20 as illegitimate — see Finding 3). Run 1's 2/9 here is
 therefore inflated relative to the careful verdict. But the *same* generous
 instrument is applied to all three arms, so the **deltas** — the actual
 decomposition — hold even though the absolute levels are soft.
@@ -300,7 +300,7 @@ are gen-side sums, directional):
 | axis (↓ = lower better)            | Run 1 | r2b | r2 | who moved it |
 |------------------------------------|------:|----:|---:|--------------|
 | A.1 substring-match asserts (↓)    | 65    | 9   | 0  | **prompt** (86% gone on 4.7 alone; 100% on 4.8) |
-| C.1 real-mock LOC (↓)              | 27    | 2   | 0  | **prompt** |
+| C.1 real-mock LOC (↓)              | 30    | 1   | 0  | **prompt** |
 | D.2 parametrize ratio (↑, per-test)| ≤0.08 | 0.05–0.25 | 0.10–0.27 | **prompt** |
 | A.2 private-symbol uses (↓, noisy) | 185   | 118 | 59 | **model** (prompt −36%, model another −50%) |
 
@@ -310,6 +310,17 @@ change alone (r2b, still on the old model). A.2 (reaching for private symbols)
 is the lone axis where the 4.8 model contributed *more* than the prompt,
 roughly halving the count again. Read A.2 as a trend, not an absolute — its
 regex matches any `obj._attr(` call, not only imports of private names.
+
+> **C.1 measurement corrected (2026-05-29).** Validating the scorers found a bug
+> in the C.1 mock regex (a trailing `\b`) that both **missed** real mocks
+> (`patch('str')`, `Mock()`, `mock.Mock()`) and **false-matched** the HTTP `PATCH`
+> verb (`client.patch(...)`). The clean fix corrected both: it re-baselined C.1
+> (httpx baseline 3→0, phantom verbs removed; requests baseline 0→3, real
+> `mock.Mock()` caught) and lowered Run 1's tally **3/9 → 2/9** — its two marginal
+> httpx wins had leaned on phantom baseline mocks, while requests/oneshot gained a
+> legitimate C.1 win. r2b and r2 tallies are unchanged. All three scorers + the
+> aggregator now carry pytest validation suites (`tests/`,
+> `.claude/skills/test-quality/tests/`).
 
 ### 12. Winning the fragility scorecard ≠ passing the full Run-2 goal
 
@@ -374,8 +385,8 @@ SUMMARY-format and `pip install -e .` hermicity → process constraints, held.
 
 The metric you point the model at dominates the suite you get (Finding 9
 confirmed): pointing at a multi-axis quality scorecard instead of coverage
-moved 3/9 → 8/9 on the *same* model. The model upgrade is a real but small
+moved 2/9 → 8/9 on the *same* model. The model upgrade is a real but small
 top-up. The open Run-3 levers: (a) gate the scorecard on the coverage floor
 (Finding 12); (b) score the semantic axes (A.3/A.6/B.2/B.3/E.*) the auto-tally
-omits, since those are where Run 1's "inflated 3/9" really lived; (c) hold the
+omits, since those are where Run 1's "inflated 2/9" really lived; (c) hold the
 model fixed now that the prompt has stabilized, per the original Run-2 note.

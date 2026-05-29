@@ -57,7 +57,9 @@ PATTERNS = {
     "A2_private_symbol": re.compile(r"from [\w.]+ import [\w,\s]*_[a-zA-Z]\w*|\b\w+\._[a-zA-Z]\w*\("),
     "A4_recomputed_crypto": re.compile(r"\bhmac\.|\bhashlib\.|expected\s*=\s*(?:hmac|hashlib|base64)"),
     "A5_or_joined": re.compile(r"in str\([^)]*\)\s*or\s"),
-    "C1_mock_real": re.compile(r"\b(?:MagicMock|Mock\(|patch\(|mocker)\b"),
+    # `patch(` guarded by a lookbehind so `mocker.patch` isn't double-counted;
+    # the old trailing \b dropped patch('str')/@patch/Mock() (real-mock undercount).
+    "C1_mock_real": re.compile(r"\bMagicMock\b|\bMock\(|(?<![.\w])patch\(|\bmocker\b"),
     "C2_mock_framework": re.compile(r"\b(?:MockTransport|WSGITransport|ASGITransport|monkeypatch|httpbin)\b"),
     "B1_fixed_vector": re.compile(r"""assert\s+[^\n=]*==\s*b?["'][A-Za-z0-9+/=\\xX_\-.]{16,}"""),
     "parametrize": re.compile(r"@pytest\.mark\.parametrize"),

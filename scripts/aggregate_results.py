@@ -35,7 +35,9 @@ POLICIES = ("oneshot", "iter2", "iter20")
 # Mock-LOC split (Run 2, Finding 6 / quality_contract rule 10): distinguish
 # real mocking (a quality concern, drive toward 0) from the framework's
 # intended real-I/O primitives (legitimate; reported for context only).
-MOCK_REAL_RE = re.compile(r"\b(MagicMock|Mock\(|patch\(|mocker\b|unittest\.mock)\b")
+# `patch(` guarded by a lookbehind so `mocker.patch` isn't double-counted; the
+# old trailing \b dropped patch('str')/@patch/Mock() (real-mock undercount).
+MOCK_REAL_RE = re.compile(r"\bMagicMock\b|\bMock\(|(?<![.\w])patch\(|\bmocker\b|\bunittest\.mock\b")
 MOCK_FRAMEWORK_RE = re.compile(
     r"\b(MockTransport|WSGITransport|ASGITransport|monkeypatch|httpbin)\b"
 )

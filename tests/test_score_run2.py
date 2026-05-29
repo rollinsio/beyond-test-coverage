@@ -62,11 +62,14 @@ def test_b1_requires_16_char_literal_boundary(score_run2, tmp_path):
     assert measure_py(score_run2, tmp_path, body)["B1_fixed_vector"] == 1
 
 
-@pytest.mark.xfail(reason="C1 regex trailing \\b drops patch('str') — same undercount as "
-                          "the skill scorer; real-mock footprint underreported",
-                   strict=True)
-def test_c1_should_count_patch_with_string_literal(score_run2, tmp_path):
+def test_c1_counts_patch_with_string_literal(score_run2, tmp_path):
+    # Regression for the trailing-\b bug: patch('literal') must count.
     body = "def test_a():\n    with patch('pkg.mod.func'):\n        pass\n"
+    assert measure_py(score_run2, tmp_path, body)["C1_mock_real"] == 1
+
+
+def test_c1_does_not_double_count_mocker_patch(score_run2, tmp_path):
+    body = "def test_a():\n    mocker.patch('pkg.f')\n"
     assert measure_py(score_run2, tmp_path, body)["C1_mock_real"] == 1
 
 

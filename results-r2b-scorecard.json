@@ -19,7 +19,7 @@
       "A2_private_symbol": 22,
       "A4_recomputed_crypto": 1,
       "A5_or_joined": 0,
-      "C1_mock_real": 3,
+      "C1_mock_real": 0,
       "C2_mock_framework": 136,
       "B1_fixed_vector": 13,
       "parametrize": 44,
@@ -33,7 +33,7 @@
       "A2_private_symbol": 18,
       "A4_recomputed_crypto": 0,
       "A5_or_joined": 0,
-      "C1_mock_real": 0,
+      "C1_mock_real": 3,
       "C2_mock_framework": 340,
       "B1_fixed_vector": 6,
       "parametrize": 77,
@@ -236,8 +236,8 @@
         },
         "C1_mock_real": {
           "gen": 0,
-          "base": 3,
-          "verdict": "WIN"
+          "base": 0,
+          "verdict": "TIE"
         },
         "B1_fixed_vector": {
           "gen": 17,
@@ -255,9 +255,9 @@
           "verdict": "LOSS"
         }
       },
-      "wins": 6,
+      "wins": 5,
       "losses": 1,
-      "ties": 1,
+      "ties": 2,
       "better": true
     },
     {
@@ -290,8 +290,8 @@
         },
         "C1_mock_real": {
           "gen": 0,
-          "base": 3,
-          "verdict": "WIN"
+          "base": 0,
+          "verdict": "TIE"
         },
         "B1_fixed_vector": {
           "gen": 12,
@@ -309,9 +309,9 @@
           "verdict": "WIN"
         }
       },
-      "wins": 6,
+      "wins": 5,
       "losses": 1,
-      "ties": 1,
+      "ties": 2,
       "better": true
     },
     {
@@ -344,8 +344,8 @@
         },
         "C1_mock_real": {
           "gen": 1,
-          "base": 3,
-          "verdict": "WIN"
+          "base": 0,
+          "verdict": "LOSS"
         },
         "B1_fixed_vector": {
           "gen": 15,
@@ -363,8 +363,8 @@
           "verdict": "WIN"
         }
       },
-      "wins": 7,
-      "losses": 0,
+      "wins": 6,
+      "losses": 1,
       "ties": 1,
       "better": true
     },
@@ -398,8 +398,8 @@
         },
         "C1_mock_real": {
           "gen": 0,
-          "base": 0,
-          "verdict": "TIE"
+          "base": 3,
+          "verdict": "WIN"
         },
         "B1_fixed_vector": {
           "gen": 2,
@@ -417,9 +417,9 @@
           "verdict": "LOSS"
         }
       },
-      "wins": 2,
+      "wins": 3,
       "losses": 3,
-      "ties": 3,
+      "ties": 2,
       "better": false
     },
     {
@@ -451,9 +451,9 @@
           "verdict": "TIE"
         },
         "C1_mock_real": {
-          "gen": 1,
-          "base": 0,
-          "verdict": "LOSS"
+          "gen": 0,
+          "base": 3,
+          "verdict": "WIN"
         },
         "B1_fixed_vector": {
           "gen": 6,
@@ -471,8 +471,8 @@
           "verdict": "LOSS"
         }
       },
-      "wins": 3,
-      "losses": 2,
+      "wins": 4,
+      "losses": 1,
       "ties": 3,
       "better": true
     },
@@ -506,8 +506,8 @@
         },
         "C1_mock_real": {
           "gen": 0,
-          "base": 0,
-          "verdict": "TIE"
+          "base": 3,
+          "verdict": "WIN"
         },
         "B1_fixed_vector": {
           "gen": 9,
@@ -525,9 +525,9 @@
           "verdict": "WIN"
         }
       },
-      "wins": 5,
+      "wins": 6,
       "losses": 0,
-      "ties": 3,
+      "ties": 2,
       "better": true
     }
   ]

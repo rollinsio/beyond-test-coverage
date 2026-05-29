@@ -135,17 +135,17 @@
 <section>
   <h2>Headline: prompt redesign dominates, model bump is a top-up</h2>
   <p class="sec-note">Worktrees that beat their own baseline on the auto-countable axes (wins &gt; losses).
-    Holding the model at 4.7 and only swapping the prompts moved <b>+5</b>; the 4.7→4.8 bump added <b>+1</b>.</p>
+    Holding the model at 4.7 and only swapping the prompts moved <b>+6</b>; the 4.7→4.8 bump added <b>+1</b>.</p>
   <div class="decomp">
     <div class="arm run1">
       <div class="arm-name">Run 1 · 4.7 · old</div>
-      <div class="tally">3<small>/9</small></div>
+      <div class="tally">2<small>/9</small></div>
       <div class="arm-desc">Opus 4.7, coverage-goal prompts</div>
     </div>
     <div class="gap prompt">
       <div class="what">Prompt effect</div>
       <div class="arrow">→</div>
-      <div class="delta">+5</div>
+      <div class="delta">+6</div>
       <div class="lever">scorecard-goal<br>prompt rewrite</div>
     </div>
     <div class="arm r2b">
@@ -269,8 +269,8 @@ const AXES = [
 ];
 const BASE = {
   itsdangerous:{A1:4,A2:10,A4:10,A5:0,C1:0,B1:0,D1:13.0,D2:0.189},
-  httpx:       {A1:7,A2:22,A4:1, A5:0,C1:3,B1:13,D1:16.56,D2:0.082},
-  requests:    {A1:9,A2:18,A4:0, A5:0,C1:0,B1:6, D1:14.88,D2:0.223},
+  httpx:       {A1:7,A2:22,A4:1,A5:0,C1:0,B1:13,D1:16.56,D2:0.082},
+  requests:    {A1:9,A2:18,A4:0,A5:0,C1:3,B1:6,D1:14.88,D2:0.223},
 };
 const WTS = [
   'itsdangerous/oneshot','itsdangerous/iter2','itsdangerous/iter20',
@@ -280,37 +280,37 @@ const WTS = [
 // per arm: gen values + [W,L,T] + better
 const GEN = {
   run1:{
-    'itsdangerous/oneshot':{A1:10,A2:9,A4:10,A5:0,C1:0,B1:2,D1:6.86,D2:0.0,  wlt:[3,2,3],better:true},
-    'itsdangerous/iter2':  {A1:10,A2:15,A4:8,A5:1,C1:0,B1:2,D1:6.73,D2:0.0,  wlt:[3,4,1],better:false},
-    'itsdangerous/iter20': {A1:11,A2:8,A4:12,A5:0,C1:0,B1:2,D1:6.88,D2:0.0,  wlt:[3,3,2],better:false},
-    'httpx/oneshot':       {A1:9,A2:5,A4:0,A5:0,C1:0,B1:6,D1:9.34,D2:0.002,  wlt:[4,3,1],better:true},
-    'httpx/iter2':         {A1:16,A2:13,A4:0,A5:0,C1:0,B1:6,D1:10.22,D2:0.0, wlt:[4,3,1],better:true},
-    'httpx/iter20':        {A1:7,A2:23,A4:1,A5:0,C1:3,B1:13,D1:16.56,D2:0.078,wlt:[0,2,6],better:false},
-    'requests/oneshot':    {A1:1,A2:30,A4:0,A5:0,C1:2,B1:6,D1:6.81,D2:0.0,   wlt:[2,3,3],better:false},
-    'requests/iter2':      {A1:1,A2:42,A4:0,A5:0,C1:21,B1:4,D1:8.24,D2:0.0,  wlt:[2,4,2],better:false},
-    'requests/iter20':     {A1:0,A2:40,A4:0,A5:0,C1:1,B1:4,D1:7.4,D2:0.0,    wlt:[2,4,2],better:false},
+    'itsdangerous/oneshot': {A1:10,A2:9,A4:10,A5:0,C1:0,B1:2,D1:6.86,D2:0.0, wlt:[3,2,3],better:true},
+    'itsdangerous/iter2':   {A1:10,A2:15,A4:8,A5:1,C1:0,B1:2,D1:6.73,D2:0.0, wlt:[3,4,1],better:false},
+    'itsdangerous/iter20':  {A1:11,A2:8,A4:12,A5:0,C1:0,B1:2,D1:6.88,D2:0.0, wlt:[3,3,2],better:false},
+    'httpx/oneshot':        {A1:9,A2:5,A4:0,A5:0,C1:0,B1:6,D1:9.34,D2:0.002, wlt:[3,3,2],better:false},
+    'httpx/iter2':          {A1:16,A2:13,A4:0,A5:0,C1:0,B1:6,D1:10.22,D2:0.0, wlt:[3,3,2],better:false},
+    'httpx/iter20':         {A1:7,A2:23,A4:1,A5:0,C1:0,B1:13,D1:16.56,D2:0.078, wlt:[0,2,6],better:false},
+    'requests/oneshot':     {A1:1,A2:30,A4:0,A5:0,C1:0,B1:6,D1:6.81,D2:0.0, wlt:[3,2,3],better:true},
+    'requests/iter2':       {A1:1,A2:42,A4:0,A5:0,C1:29,B1:4,D1:8.24,D2:0.0, wlt:[2,4,2],better:false},
+    'requests/iter20':      {A1:0,A2:40,A4:0,A5:0,C1:1,B1:4,D1:7.4,D2:0.0, wlt:[3,3,2],better:false},
   },
   r2b:{
-    'itsdangerous/oneshot':{A1:0,A2:6,A4:5,A5:0,C1:0,B1:2,D1:15.23,D2:0.114, wlt:[4,2,2],better:true},
-    'itsdangerous/iter2':  {A1:0,A2:10,A4:6,A5:0,C1:0,B1:1,D1:12.37,D2:0.202,wlt:[5,0,3],better:true},
-    'itsdangerous/iter20': {A1:0,A2:15,A4:10,A5:0,C1:0,B1:8,D1:15.92,D2:0.252,wlt:[3,2,3],better:true},
-    'httpx/oneshot':       {A1:4,A2:11,A4:0,A5:0,C1:0,B1:17,D1:10.61,D2:0.047,wlt:[6,1,1],better:true},
-    'httpx/iter2':         {A1:3,A2:13,A4:0,A5:0,C1:0,B1:12,D1:11.45,D2:0.086,wlt:[6,1,1],better:true},
-    'httpx/iter20':        {A1:2,A2:16,A4:0,A5:0,C1:1,B1:15,D1:13.65,D2:0.088,wlt:[7,0,1],better:true},
-    'requests/oneshot':    {A1:0,A2:28,A4:0,A5:0,C1:0,B1:2,D1:8.82,D2:0.104, wlt:[2,3,3],better:false},
-    'requests/iter2':      {A1:0,A2:12,A4:0,A5:0,C1:1,B1:6,D1:8.7,D2:0.094,  wlt:[3,2,3],better:true},
-    'requests/iter20':     {A1:0,A2:7,A4:0,A5:0,C1:0,B1:9,D1:11.64,D2:0.224, wlt:[5,0,3],better:true},
+    'itsdangerous/oneshot': {A1:0,A2:6,A4:5,A5:0,C1:0,B1:2,D1:15.23,D2:0.114, wlt:[4,2,2],better:true},
+    'itsdangerous/iter2':   {A1:0,A2:10,A4:6,A5:0,C1:0,B1:1,D1:12.37,D2:0.202, wlt:[5,0,3],better:true},
+    'itsdangerous/iter20':  {A1:0,A2:15,A4:10,A5:0,C1:0,B1:8,D1:15.92,D2:0.252, wlt:[3,2,3],better:true},
+    'httpx/oneshot':        {A1:4,A2:11,A4:0,A5:0,C1:0,B1:17,D1:10.61,D2:0.047, wlt:[5,1,2],better:true},
+    'httpx/iter2':          {A1:3,A2:13,A4:0,A5:0,C1:0,B1:12,D1:11.45,D2:0.086, wlt:[5,1,2],better:true},
+    'httpx/iter20':         {A1:2,A2:16,A4:0,A5:0,C1:1,B1:15,D1:13.65,D2:0.088, wlt:[6,1,1],better:true},
+    'requests/oneshot':     {A1:0,A2:28,A4:0,A5:0,C1:0,B1:2,D1:8.82,D2:0.104, wlt:[3,3,2],better:false},
+    'requests/iter2':       {A1:0,A2:12,A4:0,A5:0,C1:0,B1:6,D1:8.7,D2:0.094, wlt:[4,1,3],better:true},
+    'requests/iter20':      {A1:0,A2:7,A4:0,A5:0,C1:0,B1:9,D1:11.64,D2:0.224, wlt:[6,0,2],better:true},
   },
   run2:{
-    'itsdangerous/oneshot':{A1:0,A2:0,A4:2,A5:0,C1:0,B1:4,D1:11.96,D2:0.268, wlt:[6,0,2],better:true},
-    'itsdangerous/iter2':  {A1:0,A2:1,A4:0,A5:0,C1:0,B1:7,D1:11.75,D2:0.197, wlt:[6,0,2],better:true},
-    'itsdangerous/iter20': {A1:0,A2:14,A4:0,A5:0,C1:0,B1:3,D1:10.47,D2:0.105,wlt:[4,2,2],better:true},
-    'httpx/oneshot':       {A1:0,A2:10,A4:0,A5:0,C1:0,B1:7,D1:11.35,D2:0.138,wlt:[6,1,1],better:true},
-    'httpx/iter2':         {A1:0,A2:9,A4:0,A5:0,C1:0,B1:16,D1:13.22,D2:0.155,wlt:[7,0,1],better:true},
-    'httpx/iter20':        {A1:0,A2:2,A4:0,A5:0,C1:0,B1:7,D1:10.78,D2:0.134, wlt:[6,1,1],better:true},
-    'requests/oneshot':    {A1:0,A2:6,A4:0,A5:0,C1:0,B1:11,D1:8.79,D2:0.183, wlt:[4,1,3],better:true},
-    'requests/iter2':      {A1:0,A2:11,A4:0,A5:0,C1:0,B1:7,D1:9.6,D2:0.182,  wlt:[4,1,3],better:true},
-    'requests/iter20':     {A1:0,A2:6,A4:0,A5:0,C1:0,B1:8,D1:8.68,D2:0.238,  wlt:[5,0,3],better:true},
+    'itsdangerous/oneshot': {A1:0,A2:0,A4:2,A5:0,C1:0,B1:4,D1:11.96,D2:0.268, wlt:[6,0,2],better:true},
+    'itsdangerous/iter2':   {A1:0,A2:1,A4:0,A5:0,C1:0,B1:7,D1:11.75,D2:0.197, wlt:[6,0,2],better:true},
+    'itsdangerous/iter20':  {A1:0,A2:14,A4:0,A5:0,C1:0,B1:3,D1:10.47,D2:0.105, wlt:[4,2,2],better:true},
+    'httpx/oneshot':        {A1:0,A2:10,A4:0,A5:0,C1:0,B1:7,D1:11.35,D2:0.138, wlt:[5,1,2],better:true},
+    'httpx/iter2':          {A1:0,A2:9,A4:0,A5:0,C1:0,B1:16,D1:13.22,D2:0.155, wlt:[6,0,2],better:true},
+    'httpx/iter20':         {A1:0,A2:2,A4:0,A5:0,C1:0,B1:7,D1:10.78,D2:0.134, wlt:[5,1,2],better:true},
+    'requests/oneshot':     {A1:0,A2:6,A4:0,A5:0,C1:0,B1:11,D1:8.79,D2:0.183, wlt:[5,1,2],better:true},
+    'requests/iter2':       {A1:0,A2:11,A4:0,A5:0,C1:0,B1:7,D1:9.6,D2:0.182, wlt:[5,1,2],better:true},
+    'requests/iter20':      {A1:0,A2:6,A4:0,A5:0,C1:0,B1:8,D1:8.68,D2:0.238, wlt:[6,0,2],better:true},
   },
 };
 // Run 2 coverage deltas (non-regression floor) — line pp

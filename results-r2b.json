@@ -332,9 +332,9 @@
     "line_delta_pct": 1.27,
     "branch_delta_pct": 0.25,
     "test_loc": 4248,
-    "mock_real_loc": 1,
+    "mock_real_loc": 0,
     "mock_framework_loc": 91,
-    "mock_real_ratio": 0.0002,
+    "mock_real_ratio": 0.0,
     "iterations": [
       {
         "iter": 0,

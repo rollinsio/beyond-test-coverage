@@ -63,7 +63,10 @@ PROFILES = {
             "A2_private_symbol": r"from [\w.]+ import [\w,\s]*_[a-zA-Z]\w*|\b\w+\._[a-zA-Z]\w*\(",
             "A4_recomputed_crypto": r"\bhmac\.|\bhashlib\.|expected\s*=\s*(?:hmac|hashlib|base64)",
             "A5_or_joined": r"in str\([^)]*\)\s*or\s",
-            "C1_mock_real": r"\b(?:MagicMock|Mock\(|patch\(|mocker)\b",
+            # `patch(` guarded by a lookbehind so `mocker.patch`/`mock.patch`
+            # aren't double-counted (already covered by `mocker`); the old
+            # trailing \b dropped patch('str')/@patch/Mock() entirely.
+            "C1_mock_real": r"\bMagicMock\b|\bMock\(|(?<![.\w])patch\(|\bmocker\b",
             "C2_mock_framework": r"\b(?:MockTransport|WSGITransport|ASGITransport|monkeypatch|httpbin)\b",
             "B1_fixed_vector": r"""assert\s+[^\n=]*==\s*b?["'][A-Za-z0-9+/=\\xX_\-.]{16,}""",
         },

@@ -39,7 +39,7 @@ the same as Run 1 — see `scripts/verify_run.sh` and the structure of
   [`docs/scorecard-results.html`](docs/scorecard-results.html) — an
   interactive dashboard of the per-axis baseline-vs-generated values
   across all three arms (Run 1 → r2b → Run 2), the model-vs-prompt
-  decomposition (3/9 → 8/9 → 9/9), the coverage-floor caveat, and the
+  decomposition (2/9 → 8/9 → 9/9), the coverage-floor caveat, and the
   full table of prompt-design changes with measured outcomes.
 
 ## Repository layout
