@@ -147,7 +147,18 @@ PROFILES = {
             "A5_or_joined": r"\|\|[^;\n]*\.Error\(\)",
             "C1_mock_real": r"\bgomock\.|\.EXPECT\(\)|\bmock\.Mock\b|\.On\(\s*\"",
             "C2_mock_framework": r"\bhttptest\.(?:NewServer|NewRequest|NewRecorder|NewTLSServer)\(",
-            "B1_fixed_vector": r"want\s*:?=\s*\"[^\"\n]{12,}\"|==\s*\"[^\"\n]{12,}\"|\[\]byte\(\s*\"",
+            # Fixed vectors in Go are usually table-driven: literal expected
+            # values sit in struct rows and are asserted via `got != tc.want`.
+            # So count, beyond inline `want := "lit"` / `== "lit"` / `[]byte("`:
+            #  - comparison sites against a want/expected-named field or var, and
+            #  - named expected-field literals in table rows.
+            # (Without this, table-driven suites — the idiom the contract wants —
+            # scored ~0 on B.1.)
+            "B1_fixed_vector": (
+                r"want\s*:?=\s*\"[^\"\n]{12,}\"|==\s*\"[^\"\n]{12,}\"|\[\]byte\(\s*\""
+                r"|(?:!=|==)\s*(?:tc\.|tt\.|c\.)?(?:want|wantErr|wantBody|wantStatus|expected|exp|output|out|result|wanted)\b"
+                r"|\b(?:want|wantBody|expected|exp|output|out|wanted)\s*:\s*(?:\"[^\"\n]{8,}\"|`|\[\]byte\()"
+            ),
         },
     },
 }

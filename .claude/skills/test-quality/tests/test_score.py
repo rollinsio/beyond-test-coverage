@@ -278,6 +278,29 @@ def test_go_counts_subtests_httptest_and_vectors(tmp_path):
     assert m["B1_fixed_vector"] == 1     # want := "long literal"
 
 
+def test_go_b1_counts_table_driven_want_comparison(tmp_path):
+    # The gjson idiom (Run-3 pilot): positional rows asserted via `got != tc.want`.
+    # The expected literals live in the rows; the comparison site is the
+    # fixed-vector assertion. Pre-calibration this scored 0 despite being all
+    # fixed vectors — the gap the Go B.1 fix closes.
+    body = (
+        'package x\n'
+        'func TestGet(t *testing.T) {\n'
+        '    cases := []struct{ name, in, want string }{\n'
+        '        {"object_field", "name.last", "Anderson"},\n'
+        '        {"nested", "name.first", "Tom"},\n'
+        '    }\n'
+        '    for _, tc := range cases {\n'
+        '        if got := Get(tc.in); got != tc.want {\n'        # the fixed-vector site
+        '            t.Errorf("got %q want %q", got, tc.want)\n'  # tc.want here must NOT recount
+        '        }\n'
+        '    }\n'
+        '}\n'
+    )
+    write(tmp_path, "x_test.go", body)
+    assert score.measure(tmp_path, "go")["B1_fixed_vector"] == 1
+
+
 # ───────────────────────── JS B.1: Chai + node/chai assert (calibrated) ─────
 def test_js_b1_counts_chai_and_assert_exact_literals(tmp_path):
     # The previously-blind idioms: Chai BDD (jsonwebtoken) and node:assert
