@@ -79,11 +79,17 @@ PROFILES = {
         "param": r"\b(?:it|test|describe)\s*\.\s*each\b",
         "validated": False,
         "axes": {
-            # toThrow('msg')/toThrowError(/re/) pins message; toThrow()/toThrow(Class) does not.
+            # PARTIAL matchers only — substring/regex/membership/throw. Jest
+            # `.toThrow('s')` & Chai `.to.throw('s')` match the message as a
+            # substring; `.message` chained into a partial matcher likewise.
+            # Exact `==`-literal assertions are a fixed vector → B.1, not A.1
+            # (mirrors the validated Python split: match=/in str( → A.1).
+            # toThrow()/toThrow(Class) pin nothing, so the quote/slash is required.
             "A1_substring_match": (
                 r"\.(?:toThrow|toThrowError)\(\s*['\"" + BT + r"/]"
-                r"|\.to\.throw\(\s*['\"" + BT + r"]"
-                r"|\.message\)?\.(?:toBe|toEqual|toContain|toMatch|toStrictEqual|include|equal)\b"
+                r"|\.to(?:\.not)?\.throw\(\s*['\"" + BT + r"/]"
+                r"|\.message\b[^;\n]{0,40}?\.(?:toContain|toMatch|include|includes|match)\b"
+                r"|\bassert\.throws?\([^\n]*,\s*/"
             ),
             "A2_private_symbol": r"\bas any\b|\._[A-Za-z]\w*|\[\s*['\"]_[A-Za-z]",
             "A4_recomputed_crypto": (
@@ -101,14 +107,23 @@ PROFILES = {
                 r"|\bvi\.(?:fn|mock|spyOn|stubGlobal|stubEnv|importMock)\("
                 r"|\bsinon\.(?:stub|spy|mock|fake|createStubInstance|replace)\b"
             ),
+            # Legitimate framework doubles (context only, not scored). sinon
+            # fake-timers/fake-server control time/transport boundaries — the
+            # acceptable side of the C.1/C.2 line, not a hand mock of the unit.
             "C2_mock_framework": (
                 r"\bsupertest\b|@testing-library|\bsetupServer\b|\bsetupWorker\b"
                 r"|\bnock\(|\bfetchMock\b|fetch-mock|request\(\s*app\b|\brender\("
+                r"|\bsinon\.(?:useFakeTimers|useFakeXMLHttpRequest|fakeServer)\b"
             ),
+            # Exact-literal equality against a 12+ char literal (or hex/inline
+            # snapshot): Jest/Vitest `.toBe/.toEqual`, Chai `.to.equal/.eql/
+            # .deep.equal`, and node/chai `assert.equal/strictEqual/deepEqual`.
             "B1_fixed_vector": (
                 r"\.(?:toBe|toEqual|toStrictEqual)\(\s*(?:['\"" + BT + r"][^'\"" + BT + r"\n]{12,}['\"" + BT + r"]"
                 r"|0x[0-9a-fA-F]{8,}|Buffer\.from\(\s*['\"" + BT + r"][0-9a-fA-F]{16,})"
                 r"|\btoMatchInlineSnapshot\("
+                r"|\.to(?:\.deep)?\.(?:equal|eql)\(\s*['\"" + BT + r"][^'\"" + BT + r"\n]{12,}['\"" + BT + r"]"
+                r"|\bassert\.(?:strictEqual|deepStrictEqual|deepEqual|equal)\([^,\n]*,\s*['\"" + BT + r"][^'\"" + BT + r"\n]{12,}['\"" + BT + r"]"
             ),
         },
     },

@@ -121,16 +121,21 @@ def test_js_suffix_variants(tmp_path):
 
 
 # ───────────────────────── JS axis counts (verified by REPL) ────────────────
-def test_js_a1_message_and_throw_matchers(tmp_path):
+def test_js_a1_counts_partial_matchers_not_exact_equality(tmp_path):
+    # A.1 = PARTIAL message matchers only. Exact `==`-literal equality is a
+    # fixed vector (B.1), so `.message).to.equal(...)` must NOT count here.
     body = (
-        "it('1', () => { expect(() => f()).toThrow('boom'); });\n"        # match
-        "it('2', () => { expect(() => g()).to.throw('no'); });\n"          # match (chai)
-        "it('3', () => { expect(e.message).toContain('x'); });\n"          # match
-        "it('4', () => { expect(() => h()).toThrow(); });\n"               # no arg -> no
-        "it('5', () => { expect(() => k()).toThrow(TypeError); });\n"      # class -> no
+        "it('1', () => { expect(() => f()).toThrow('boom'); });\n"          # substring -> A1
+        "it('2', () => { expect(() => g()).to.throw('no'); });\n"           # chai throw -> A1
+        "it('3', () => { expect(e.message).toContain('x'); });\n"           # toContain -> A1
+        "it('4', () => { expect(err.message).to.include('bad'); });\n"      # chai include -> A1
+        "it('5', () => { assert.throws(fn, /TypeErr/); });\n"               # assert.throws+/re/ -> A1
+        "it('6', () => { expect(err.message).to.equal('exact full msg'); });\n"  # exact == -> B1, NOT A1
+        "it('7', () => { expect(() => h()).toThrow(); });\n"               # no arg -> no
+        "it('8', () => { expect(() => k()).toThrow(TypeError); });\n"      # class -> no
     )
     write(tmp_path, "a.test.js", body)
-    assert score.measure(tmp_path, "js")["A1_substring_match"] == 3
+    assert score.measure(tmp_path, "js")["A1_substring_match"] == 5
 
 
 def test_js_c1_counts_mock_creation_not_config(tmp_path):
@@ -273,15 +278,41 @@ def test_go_counts_subtests_httptest_and_vectors(tmp_path):
     assert m["B1_fixed_vector"] == 1     # want := "long literal"
 
 
-# ───────────────────────── Known JS calibration gap (Chai) ──────────────────
-@pytest.mark.xfail(reason="JS B.1 only matches Jest/Vitest matchers (.toBe/.toEqual); "
-                          "Mocha+Chai `.to.equal('vec')` is invisible — under-detection "
-                          "on jsonwebtoken/express; see memory",
-                   strict=True)
-def test_js_b1_should_count_chai_equal_fixed_vector(tmp_path):
-    body = "it('t', () => { expect(token).to.equal('aaaaaaaaaaaaaaaa'); });\n"
+# ───────────────────────── JS B.1: Chai + node/chai assert (calibrated) ─────
+def test_js_b1_counts_chai_and_assert_exact_literals(tmp_path):
+    # The previously-blind idioms: Chai BDD (jsonwebtoken) and node:assert
+    # (express). Each line is an exact-literal equality >=12 chars -> one B1.
+    body = (
+        "it('1', () => { expect(token).to.equal('aaaaaaaaaaaaaaaa'); });\n"        # chai .to.equal
+        "it('2', () => { expect(o).to.deep.equal('bbbbbbbbbbbbbbbb'); });\n"       # chai .to.deep.equal
+        "it('3', () => { expect(o).to.eql('cccccccccccccccc'); });\n"             # chai .to.eql
+        "it('4', () => { assert.strictEqual(s, 'dddddddddddddddd'); });\n"        # node assert
+        "it('5', () => { assert.equal(s, 'eeeeeeeeeeeeeeee'); });\n"              # node/chai assert
+    )
+    write(tmp_path, "a.test.js", body)
+    assert score.measure(tmp_path, "js")["B1_fixed_vector"] == 5
+
+
+def test_js_b1_exact_equality_ignores_short_literals_and_vars(tmp_path):
+    # Boundary: <12 chars and non-literal RHS must NOT count as fixed vectors.
+    body = (
+        "it('1', () => { expect(x).to.equal('short'); });\n"          # 5 chars -> no
+        "it('2', () => { expect(x).to.equal(expected); });\n"        # variable -> no
+        "it('3', () => { assert.equal(a, b); });\n"                  # var,var -> no
+        "it('4', () => { expect(x).to.equal('twelvecharss'); });\n"  # 12 chars -> match
+    )
     write(tmp_path, "a.test.js", body)
     assert score.measure(tmp_path, "js")["B1_fixed_vector"] == 1
+
+
+def test_js_c2_counts_sinon_fake_timers_as_legit_framework(tmp_path):
+    # jsonwebtoken's only sinon usage is fake-timers (time control). It belongs
+    # in C.2 (reported, legit), NOT C.1 (hand mock of the unit) -> C1 stays 0.
+    body = "it('t', () => { const c = sinon.useFakeTimers(); c.tick(1000); });\n"
+    write(tmp_path, "a.test.js", body)
+    m = score.measure(tmp_path, "js")
+    assert m["C2_mock_framework"] == 1
+    assert m["C1_mock_real"] == 0
 
 
 # ───────────────────────── Robustness ───────────────────────────────────────

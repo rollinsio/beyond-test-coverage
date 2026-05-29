@@ -1,0 +1,133 @@
+{
+  "kind": "scorer-check",
+  "note": "Baseline-only profile validation of the JS/Go scorer profiles. No generation, no gen-vs-baseline verdict \u2014 confirms each auto-counted axis fires on real-world idioms.",
+  "scorer": ".claude/skills/test-quality/scripts/score.py",
+  "results": [
+    {
+      "repo": "express",
+      "slug": "expressjs/express",
+      "lang": "js",
+      "validated": false,
+      "head": "dae209a",
+      "files": 91,
+      "test_count": 1128,
+      "test_loc": 16439,
+      "axes": {
+        "A1_substring_match": 25,
+        "A2_private_symbol": 2,
+        "A4_recomputed_crypto": 0,
+        "A5_or_joined": 0,
+        "C1_mock_real": 0,
+        "B1_fixed_vector": 28,
+        "D1_loc_per_test": 14.57,
+        "D2_param_ratio": 0.0
+      },
+      "C2_mock_framework": 879
+    },
+    {
+      "repo": "jsonwebtoken",
+      "slug": "auth0/node-jsonwebtoken",
+      "lang": "js",
+      "validated": false,
+      "head": "02688b9",
+      "files": 34,
+      "test_count": 253,
+      "test_loc": 3799,
+      "axes": {
+        "A1_substring_match": 15,
+        "A2_private_symbol": 0,
+        "A4_recomputed_crypto": 1,
+        "A5_or_joined": 0,
+        "C1_mock_real": 0,
+        "B1_fixed_vector": 21,
+        "D1_loc_per_test": 15.02,
+        "D2_param_ratio": 0.0
+      },
+      "C2_mock_framework": 9
+    },
+    {
+      "repo": "zod",
+      "slug": "colinhacks/zod",
+      "lang": "js",
+      "validated": false,
+      "head": "bbc68f9",
+      "files": 172,
+      "test_count": 1946,
+      "test_loc": 37466,
+      "axes": {
+        "A1_substring_match": 69,
+        "A2_private_symbol": 497,
+        "A4_recomputed_crypto": 0,
+        "A5_or_joined": 0,
+        "C1_mock_real": 0,
+        "B1_fixed_vector": 915,
+        "D1_loc_per_test": 19.25,
+        "D2_param_ratio": 0.0
+      },
+      "C2_mock_framework": 0
+    },
+    {
+      "repo": "chi",
+      "slug": "go-chi/chi",
+      "lang": "go",
+      "validated": false,
+      "head": "3b17157",
+      "files": 24,
+      "test_count": 111,
+      "test_loc": 5957,
+      "axes": {
+        "A1_substring_match": 0,
+        "A2_private_symbol": null,
+        "A4_recomputed_crypto": 0,
+        "A5_or_joined": 0,
+        "C1_mock_real": 0,
+        "B1_fixed_vector": 110,
+        "D1_loc_per_test": 53.67,
+        "D2_param_ratio": 0.369
+      },
+      "C2_mock_framework": 100
+    },
+    {
+      "repo": "gjson",
+      "slug": "tidwall/gjson",
+      "lang": "go",
+      "validated": false,
+      "head": "7d8b382",
+      "files": 1,
+      "test_count": 98,
+      "test_loc": 2760,
+      "axes": {
+        "A1_substring_match": 0,
+        "A2_private_symbol": null,
+        "A4_recomputed_crypto": 0,
+        "A5_or_joined": 0,
+        "C1_mock_real": 0,
+        "B1_fixed_vector": 11,
+        "D1_loc_per_test": 28.16,
+        "D2_param_ratio": 0.02
+      },
+      "C2_mock_framework": 0
+    },
+    {
+      "repo": "golang-jwt",
+      "slug": "golang-jwt/jwt",
+      "lang": "go",
+      "validated": false,
+      "head": "e8e5b83",
+      "files": 19,
+      "test_count": 45,
+      "test_loc": 3510,
+      "axes": {
+        "A1_substring_match": 1,
+        "A2_private_symbol": null,
+        "A4_recomputed_crypto": 0,
+        "A5_or_joined": 0,
+        "C1_mock_real": 0,
+        "B1_fixed_vector": 9,
+        "D1_loc_per_test": 78.0,
+        "D2_param_ratio": 0.378
+      },
+      "C2_mock_framework": 0
+    }
+  ]
+}

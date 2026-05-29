@@ -12,7 +12,30 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-Changes intended for Run 3+ go here. Currently empty.
+Changes intended for Run 3+ go here.
+
+### Changed — scorer (measurement)
+- **JS profile calibrated to Chai / node:assert / sinon.** The JS A.1/B.1
+  regexes only recognized Jest/Vitest matchers, so Mocha+Chai and `node:assert`
+  suites read ~0 on those axes despite being substantial. Validated against
+  three real suites (express = `node:assert`+supertest, jsonwebtoken =
+  Chai BDD+chai-assert+sinon, zod = Vitest):
+  - **B.1** now also counts exact-literal equality via Chai (`.to.equal/.eql/
+    .deep.equal`) and node/chai `assert.equal/strictEqual/deepEqual` (12+ char
+    literal). express B.1 0→28, jsonwebtoken 0→21.
+  - **A.1** restricted to *partial* matchers (substring/regex/membership/throw:
+    `toContain`, `.include`, `toMatch`, `.to.throw('s')`, `assert.throws(…,/re/)`).
+    Exact `==`-literal assertions are a fixed vector (B.1), mirroring the
+    validated Python split (`match=`/`in str(` → A.1) — this removes the A.1∩B.1
+    double-count on error-message equality.
+  - **C.2** now recognizes `sinon.useFakeTimers/useFakeXMLHttpRequest/fakeServer`
+    as legitimate framework doubles (time/transport control), confirming the
+    JS **C.1 = 0** readings are correct, not misses.
+- Added `scripts/scorer_check.py` → `results-scorer-check.{json,md}`: a
+  reproducible baseline-only profile-validation pass over the six cloned repos.
+  This is **not** a benchmark run (no generation, no gen-vs-baseline verdict).
+- Profiles stay `validated:false` until a full gen-vs-baseline JS/Go benchmark
+  (Run 3) runs.
 
 ---
 
