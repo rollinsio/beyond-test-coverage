@@ -1,8 +1,9 @@
 # beyond-test-coverage
 
-**Are LLM-generated tests better or worse than the ones humans write?**
-The only honest way to answer is to put numbers on it — and *code
-coverage* is a vanity metric that doesn't. 100%-covered suites are
+## Are LLM-generated tests better human written tests?
+
+We need to put numbers to it. *Code
+coverage* is a vanity metric. 100%-covered suites are
 routinely brittle, over-mocked, and noisy; coverage tells you a line
 *ran*, not that a test would *catch the regression that breaks it*.
 
@@ -98,14 +99,19 @@ Two honest caveats the numbers also surfaced:
 
 **Explore the numbers yourself:**
 
-- [`docs/run3-results.html`](docs/run3-results.html) — interactive
-  dashboard for the cross-language run (JS/TS + Go): per-axis win/tie/loss
-  across all 18 runs, the one-shot-vs-iterate split, and the full
-  per-suite matrix.
-- [`docs/scorecard-results.html`](docs/scorecard-results.html) — the
+- [`docs/cross-language-results.html`](docs/cross-language-results.html) —
+  interactive dashboard for the cross-language experiment (JS/TS + Go):
+  per-axis win/tie/loss across all 18 arms, the one-shot-vs-iterate split,
+  and the full per-suite matrix.
+- [`docs/python-results.html`](docs/python-results.html) — the
   Python dashboard, including the decomposition of *why* coverage-driven
   scored 2/9 and quality-driven scored 9/9.
 - [`FINDINGS.md`](FINDINGS.md) — the full running analysis.
+
+Static previews live in [`examples/`](examples/) (GitHub renders the HTML
+dashboards as source, so open them locally for the interactive charts):
+
+[![Cross-language results — 18/18 arms beat the human baseline](examples/cross-language-results.png)](docs/cross-language-results.html)
 
 ## The quality scorecard
 
@@ -128,11 +134,25 @@ review-time judgement calls.
 
 ## Use it on your own suite
 
-The reusable artifact is the bundled [`test-quality`](.claude/skills/test-quality/)
-Claude Code skill — the scorer, the anti-fragility contract, and the
-read→build→evaluate loop definition. A clone is self-contained, so the
-skill is auto-discovered when you open the repo in Claude Code. Score any
-suite directly:
+The reusable artifacts are two bundled [Claude Code skills](.claude/skills/):
+
+- [`test-quality`](.claude/skills/test-quality/) — the scorer, the
+  anti-fragility contract, and the read→build→evaluate loop definition. This is
+  the product: point it at a suite to audit, harden, or generate tests against
+  the quality scorecard.
+- [`results-dashboard`](.claude/skills/results-dashboard/) — renders a scorecard
+  JSON into the same interactive HTML readouts you see in `docs/`.
+
+A clone is self-contained, so both skills are auto-discovered when you open the
+repo in Claude Code. You can also install them into any project in one step via
+the bundled [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json):
+
+```
+/plugin marketplace add <owner>/<this-repo>
+/plugin install test-quality-tools@beyond-test-coverage
+```
+
+Or score any suite directly, without the skill harness:
 
 ```bash
 python .claude/skills/test-quality/scripts/score.py \
@@ -143,40 +163,46 @@ python .claude/skills/test-quality/scripts/score.py \
 
 ```
 .
-├── .claude/skills/test-quality/  # the reusable scorer + rubric + contract
+├── .claude/skills/               # two bundled Claude Code skills:
+│   ├── test-quality/             #   scorer + rubric + read→build→evaluate loop
+│   └── results-dashboard/        #   scorecard JSON → interactive HTML readout
+├── .claude-plugin/               # marketplace.json — one-command install of both
 ├── docs/                         # interactive results dashboards
 ├── prompts/                      # the prompt sets that drive generation
 ├── scripts/                      # setup, scoring, and aggregation harness
 ├── configs/                      # per-repo coverage config
-├── reports/ · runs/              # preserved per-run reports & inventories
+├── reports/ · runs/              # preserved reports & worktree inventories
 ├── results-*.{json,md}           # the scored results behind the dashboards
 ├── FINDINGS.md                   # running analysis (what we learned)
-└── CHANGELOG.md                  # how the rubric & prompts evolved per round
+└── CHANGELOG.md                  # how the rubric & prompts evolved per stage
 ```
 
 The nine libraries under test are each cloned locally into their own
 git-ignored directory; **they are not redistributed here** and remain
-under their own licenses. Generated suites live on per-run branches inside
+under their own licenses. Generated suites live on preserved branches inside
 those clones.
 
 ## How the experiment is organized
 
-The work proceeded in rounds; each round froze a prompt set, ran it, and
-fed its findings into the next. They're referred to as **Run 1/2/3** in
-the logs and dashboards:
+The work proceeded in three stages. Each froze a prompt set, ran it against
+the libraries, and fed its findings into the next:
 
-- **Run 1 — the coverage-driven baseline.** Python, prompts aimed at
-  coverage %. Beat the human baseline on 2/9 (it stopped at parity). This
-  is the control that motivated everything else.
-- **Run 2 — quality-driven, Python.** Same repos, prompts re-aimed at the
-  quality scorecard. 9/9. (A model upgrade contributed a marginal top-up;
-  the prompt redesign did the heavy lifting — see FINDINGS §10.)
-- **Run 3 — quality-driven, cross-language.** New JS/TS + Go libraries,
-  same approach. 18/18 — the result generalizes beyond Python.
+- **Coverage-driven control** (Python). Prompts aimed at coverage %. Beat
+  the human baseline on only 2/9 — the suites hit coverage parity and
+  stopped. This is the control that motivated everything else.
+- **Quality-driven** (Python). Same repos, prompts re-aimed at the quality
+  scorecard. 9/9. An *ablation* arm held the model fixed at Opus 4.7 and
+  swapped only the prompts, isolating the effect: the prompt redesign did
+  the heavy lifting; the model upgrade was a marginal top-up (FINDINGS §10).
+- **Cross-language** (JS/TS + Go). New libraries, same approach. 18/18 —
+  the result generalizes beyond Python.
 
-Each round's prompts live frozen under `prompts/run-N/`; `CHANGELOG.md`
-records the rubric/prompt delta and `FINDINGS.md` the evidence. Rubric
-changes themselves queue under CHANGELOG `[Unreleased]` for the next round.
+The frozen prompt sets live under [`prompts/quality/`](prompts/quality/) and
+[`prompts/cross-language/`](prompts/cross-language/); the scored artifacts are
+`results-{coverage,quality,ablation,cross-language}-*.{json,md}`.
+[`CHANGELOG.md`](CHANGELOG.md) records the rubric/prompt delta per stage and
+[`FINDINGS.md`](FINDINGS.md) the evidence; proposed rubric changes queue under
+CHANGELOG `[Unreleased]`.
 
 ## License
 

@@ -8,8 +8,10 @@ given (e.g. the suite *before* you started improving it, captured via
 against that baseline as a Win/Loss/Tie tally.
 
 Multi-language via per-language *profiles*. The Python/pytest profile is the
-one validated in the llm-testgen-bench Run-2 experiment (prompting a model with
-these axes beat human baselines on 8 of 9 cells). The JavaScript/TypeScript and
+one validated in the llm-testgen-bench quality experiment, where prompting a
+model with these axes beat human-written baselines on the auto-countable axes
+in 9 of 9 Python suites (8 of 9 with the model held fixed — the rubric, not the
+model, drove the gain). The JavaScript/TypeScript and
 Go profiles apply the same axes with framework-appropriate regexes; they are
 heuristic and not yet empirically validated to the same degree — treat their
 numbers as a guide, and lean on judgement (read the tests) more heavily.

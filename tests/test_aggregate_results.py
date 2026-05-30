@@ -3,8 +3,8 @@
 The headline regression here is the abs/rel path-matching fix: coverage JSONs
 key files by *either* a relative path (``src/itsdangerous/x.py``) or an absolute
 one (``/Users/.../base/src/itsdangerous/x.py``) depending on whether the package
-resolved via an editable install. Both must be counted. Run 1 silently reported
-0.00% for the suites whose keys were absolute.
+resolved via an editable install. Both must be counted. An earlier version
+silently reported 0.00% for the suites whose keys were absolute.
 """
 import json
 
@@ -40,9 +40,11 @@ def test_norm_normalizes_separators_and_leading_slash(aggregate):
     assert aggregate._norm("/x/y.py") == "/x/y.py"
 
 
-@pytest.mark.parametrize("run, prefix", [(1, "wt-"), (2, "wt-r2-"), (3, "wt-r3-")])
-def test_worktree_prefix(aggregate, run, prefix):
-    assert aggregate.worktree_prefix(run) == prefix
+@pytest.mark.parametrize("experiment, prefix", [
+    ("coverage", "wt-"), ("quality", "wt-r2-"), ("ablation", "wt-r2b-"),
+])
+def test_experiments_map_to_worktree_prefix(aggregate, experiment, prefix):
+    assert aggregate.EXPERIMENTS[experiment] == prefix
 
 
 # ── _iter_cov: tolerate coverage.json vs cov.json ────────────────────────────

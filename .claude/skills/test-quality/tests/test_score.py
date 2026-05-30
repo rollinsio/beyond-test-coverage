@@ -5,7 +5,7 @@ These tests dogfood the rubric the scorer enforces:
     by reading it as a human would, NOT recomputed with the scorer's own regex
     (that would be tautological and couldn't catch a wrong regex).
   * Boundary cases (the >=12-char B.1 threshold, etc.).
-  * A named regression test for every bug found during Run-3 validation prep.
+  * A named regression test for every bug found during cross-language validation prep.
   * Known gaps are `xfail` (assert the *desired* behaviour, stay visible) rather
     than asserting the buggy number — so they flip to XPASS when fixed.
 
@@ -279,7 +279,7 @@ def test_go_counts_subtests_httptest_and_vectors(tmp_path):
 
 
 def test_go_b1_counts_table_driven_want_comparison(tmp_path):
-    # The gjson idiom (Run-3 pilot): positional rows asserted via `got != tc.want`.
+    # The gjson idiom (cross-language pilot): positional rows asserted via `got != tc.want`.
     # The expected literals live in the rows; the comparison site is the
     # fixed-vector assertion. Pre-calibration this scored 0 despite being all
     # fixed vectors — the gap the Go B.1 fix closes.

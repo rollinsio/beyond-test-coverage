@@ -22,8 +22,8 @@ def _load(name):
 
 
 @pytest.fixture(scope="session")
-def score_run2():
-    return _load("score_run2")
+def score_quality():
+    return _load("score_quality")
 
 
 @pytest.fixture(scope="session")

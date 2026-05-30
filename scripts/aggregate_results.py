@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Aggregate Section 4 results across all 9 worktrees.
+"""Aggregate coverage results across the three Python worktrees per repo.
 
-For each ``<repo>/wt-<policy>``, finds the *final* coverage JSON the spawned
-session produced (preferring ``generated_coverage.json`` for one-shot,
+For each ``<repo>/<wt-prefix><policy>``, finds the *final* coverage JSON the
+spawned session produced (preferring ``generated_coverage.json`` for one-shot,
 ``iter_N/coverage.json`` with the highest N otherwise) and computes:
 
 - line/branch coverage on the src package only
@@ -10,8 +10,8 @@ session produced (preferring ``generated_coverage.json`` for one-shot,
 - test LOC and mock-line count
 - per-iteration history (where available)
 
-Writes ``results.json`` and a Markdown table to ``results.md`` under the
-benchmark root.
+Writes ``results-<experiment>.{json,md}`` under the benchmark root, where
+``<experiment>`` is one of the Python experiments below.
 """
 
 from __future__ import annotations
@@ -32,9 +32,20 @@ REPOS = {
 }
 POLICIES = ("oneshot", "iter2", "iter20")
 
-# Mock-LOC split (Run 2, Finding 6 / quality_contract rule 10): distinguish
-# real mocking (a quality concern, drive toward 0) from the framework's
-# intended real-I/O primitives (legitimate; reported for context only).
+# The Python experiments this aggregator covers, mapped to the (git-ignored,
+# not-redistributed) on-disk worktree prefix each one's sessions wrote into.
+# The prefixes are a historical filesystem fact; the experiment names are the
+# interface. The cross-language experiment uses score_cross_language.py instead
+# (different repos, multi-language scorer).
+EXPERIMENTS = {
+    "coverage": "wt-",      # coverage-driven control (Python)
+    "quality":  "wt-r2-",   # quality-driven (Python)
+    "ablation": "wt-r2b-",  # Opus 4.7 + quality prompts; isolates prompt vs model
+}
+
+# Mock-LOC split (Finding 6 / quality_contract rule 10): distinguish real
+# mocking (a quality concern, drive toward 0) from the framework's intended
+# real-I/O primitives (legitimate; reported for context only).
 # `patch(` guarded by a lookbehind so `mocker.patch` isn't double-counted; the
 # old trailing \b dropped patch('str')/@patch/Mock() (real-mock undercount).
 MOCK_REAL_RE = re.compile(r"\bMagicMock\b|\bMock\(|(?<![.\w])patch\(|\bmocker\b|\bunittest\.mock\b")
@@ -43,9 +54,9 @@ MOCK_FRAMEWORK_RE = re.compile(
 )
 TEST_SEGMENTS = ("tests", "test")
 
-# Run-2 sessions were inconsistent about the per-iteration coverage filename:
-# most wrote ``coverage.json``; httpx/iter2 wrote ``cov.json``. Accept either so
-# one session's naming quirk doesn't silently drop a real data point.
+# Sessions were inconsistent about the per-iteration coverage filename: most
+# wrote ``coverage.json``; httpx/iter2 wrote ``cov.json``. Accept either so one
+# session's naming quirk doesn't silently drop a real data point.
 COV_NAMES = ("coverage.json", "cov.json")
 
 
@@ -297,35 +308,26 @@ def render_markdown(results: list[WorktreeResult]) -> str:
     return "\n".join(lines)
 
 
-def worktree_prefix(run: int) -> str:
-    """Run 1 used the legacy ``wt-<policy>``; Run N≥2 uses ``wt-rN-<policy>``."""
-    return "wt-" if run == 1 else f"wt-r{run}-"
-
-
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument(
-        "--run", type=int, default=2,
-        help="Benchmark run number. 1 → wt-<policy>; N≥2 → wt-rN-<policy>. Default: 2.",
-    )
-    ap.add_argument(
-        "--label", default=None,
-        help="Override worktree prefix: wt-<label>-<policy> (e.g. r2b for the Opus-4.7 "
-             "control). Takes precedence over --run.",
+        "--experiment", choices=list(EXPERIMENTS), default="quality",
+        help="Which Python experiment to aggregate (sets the worktree prefix and "
+             "the output filename). Default: quality.",
     )
     args = ap.parse_args()
 
-    wt_prefix = f"wt-{args.label}-" if args.label else worktree_prefix(args.run)
-    tag = args.label if args.label else f"run{args.run}"
+    name = args.experiment
+    wt_prefix = EXPERIMENTS[name]
     results = []
     for repo in REPOS:
         for policy in POLICIES:
             results.append(compute_one(repo, policy, wt_prefix))
 
-    # Run 1's results.json/results.md are preserved artifacts; never overwrite
-    # them. Each run/label writes its own results-<tag>.{json,md}.
-    out_json = ROOT / f"results-{tag}.json"
-    out_md = ROOT / f"results-{tag}.md"
+    # Each experiment writes its own results-<experiment>.{json,md}, so they
+    # never overwrite one another.
+    out_json = ROOT / f"results-{name}.json"
+    out_md = ROOT / f"results-{name}.md"
     out_json.write_text(json.dumps([asdict(r) for r in results], indent=2))
     out_md.write_text(render_markdown(results))
     print(f"Wrote {out_json}")

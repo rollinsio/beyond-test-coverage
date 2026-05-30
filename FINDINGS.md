@@ -1,17 +1,17 @@
 # Findings — LLM test-generation benchmark
 
-This is an iterative experiment. Each run uses the previous run's
+This is an iterative experiment. Each stage uses the previous stage's
 findings to refine the prompts. Findings accumulate; nothing is deleted.
-Each Run-N entry preserves the worktrees and reports that produced it.
+Each entry preserves the worktrees and reports that produced it.
 
-| Run | Date       | Prompt set         | Worktree inventory      | Reports                  |
-|-----|------------|--------------------|-------------------------|--------------------------|
-| 1   | 2026-05-28 | (initial — embedded in plan doc) | [runs/run-1.md](runs/run-1.md) | [reports/](reports/) |
-| 2   | 2026-05-28 | [prompts/run-2/](prompts/run-2/) | `wt-r2-*` (Opus 4.8) + `wt-r2b-*` (Opus 4.7 control) | `results-run2*.{json,md}`, `results-r2b*.{json,md}` |
+| Experiment | Date       | Prompt set         | Worktree inventory      | Reports                  |
+|------------|------------|--------------------|-------------------------|--------------------------|
+| coverage   | 2026-05-28 | (initial — embedded in plan doc) | [runs/coverage.md](runs/coverage.md) | [reports/](reports/) |
+| quality    | 2026-05-28 | [prompts/quality/](prompts/quality/) | `wt-r2-*` (Opus 4.8) + `wt-r2b-*` (Opus 4.7 control) | `results-quality*.{json,md}`, `results-ablation*.{json,md}` |
 
 ---
 
-## Run 1 — 2026-05-28 findings
+## Coverage-driven control — 2026-05-28 findings
 
 Nine worktrees (3 repos × 3 policies — oneshot, iter2, iter20) run
 against `pallets/itsdangerous`, `encode/httpx`, `psf/requests`. Full
@@ -30,7 +30,7 @@ three are *more fragile* than the original by the patterns below. The
 additions targeting private internals, not from deeper behavioral
 testing.
 
-**Action for Run 2:** the prompt should de-emphasize coverage as the
+**Action for the quality-driven experiment:** the prompt should de-emphasize coverage as the
 success criterion. iter20 in particular needs a different stopping
 condition.
 
@@ -50,7 +50,7 @@ because the prompt framed success as "exceed baseline %." Once
 coverage was past baseline, the model had no incentive to keep
 iterating.
 
-**Action for Run 2:** iter20's success criterion needs to require
+**Action for the quality-driven experiment:** iter20's success criterion needs to require
 *more* than coverage matching. Either an explicit "deepen tests after
 matching coverage" instruction, or a boundary-mutation-style criterion.
 
@@ -68,7 +68,7 @@ The other two iter20 sessions (itsdangerous, requests) generated
 genuinely; their files all differ from baseline. So this was
 opportunistic, not systematic.
 
-**Action for Run 2:** the prompt must explicitly forbid recovering
+**Action for the quality-driven experiment:** the prompt must explicitly forbid recovering
 deleted tests from git. The cleanest framing: "treat the
 delete-commit's parent as the only legitimate source of information —
 no `git show`, `git log -p`, `git restore`, or equivalent." If the
@@ -87,7 +87,7 @@ have caught this.
 Neither failure is a bug-find. Both look like coverage holes; they're
 actually misreads of stdlib behavior.
 
-**Action for Run 2:** the prompt should require a "verify your
+**Action for the quality-driven experiment:** the prompt should require a "verify your
 assumptions" step before writing tests that depend on runtime behavior
 of imported functions. Specifically: "If a test you're about to write
 asserts that a stdlib or third-party function raises a specific
@@ -122,9 +122,9 @@ sometimes misses a case). Original reuses entire test classes via
 duplicates each behavior in each file. Result: **2.3–2.5× LOC
 inflation** across all itsdangerous policies.
 
-**Action for Run 2:** the prompt needs an explicit anti-fragility
+**Action for the quality-driven experiment:** the prompt needs an explicit anti-fragility
 contract section listing these patterns with positive alternatives.
-See [prompts/run-2/](prompts/run-2/).
+See [prompts/quality/](prompts/quality/).
 
 ### 6. The mock-LOC metric is noisy
 
@@ -141,7 +141,7 @@ they were using the framework's intended primitives.
 | requests baseline | 4902 | ~62              | 1.3 |
 | requests oneshot  | 2587 | 32               | 1.2 |
 
-**Action for Run 2:** the metric needs to distinguish `unittest.mock`/`MagicMock`/`mocker` (real mocking) from `httpx.MockTransport`/`monkeypatch` (framework primitives). Refine the regex or count by category.
+**Action for the quality-driven experiment:** the metric needs to distinguish `unittest.mock`/`MagicMock`/`mocker` (real mocking) from `httpx.MockTransport`/`monkeypatch` (framework primitives). Refine the regex or count by category.
 
 ### 7. The standout pattern: integration tests via real-I/O fixtures
 
@@ -161,7 +161,7 @@ suite than the baseline.
 The other two requests sessions used these fixtures too, but didn't
 make the unit-vs-integration split as cleanly.
 
-**Action for Run 2:** the prompt should explicitly point out the
+**Action for the quality-driven experiment:** the prompt should explicitly point out the
 framework's real-I/O fixtures by name, and instruct iter2/iter20
 sessions to consider adding integration tests when unit tests
 plateau below baseline coverage.
@@ -187,7 +187,7 @@ c. **"Line coverage" labels disagreed across SUMMARYs.** Some used
    branch is on). The prompt should require the SUMMARY to report
    *both* numbers under labeled names.
 
-### What we want to test in Run 2
+### What we want to test next (quality-driven)
 
 Each is a discrete prompt-design change with a falsifiable prediction:
 
@@ -201,11 +201,11 @@ Each is a discrete prompt-design change with a falsifiable prediction:
 | 6 | Require SUMMARY to report both pure-line and combined coverage         | Apples-to-apples comparison across runs becomes possible                |
 | 7 | Forbid `pip install -e .` from inside worktrees                        | Editable install in shared venv stays pointing at base/                |
 
-All seven changes are encoded in [prompts/run-2/](prompts/run-2/).
+All seven changes are encoded in [prompts/quality/](prompts/quality/).
 
-### 9. Even the initial Run 2 design centered on coverage. We re-centered it on quality.
+### 9. Even the initial quality-driven design centered on coverage. We re-centered it on quality.
 
-The first draft of the Run 2 prompts kept coverage as the goal ("beat
+The first draft of the quality-driven prompts kept coverage as the goal ("beat
 baseline coverage AND no anti-patterns AND at least one
 integration/boundary iteration"). On review, this still anchors the
 session on a number; the quality rules act as side constraints. That's
@@ -213,12 +213,12 @@ the wrong framing.
 
 **The corrected framing:** the goal is to produce a *better* test
 suite than the baseline. "Better" is defined by a multi-axis quality
-scorecard (`prompts/run-2/quality_scorecard.md`). Coverage is a
+scorecard (`prompts/quality/quality_scorecard.md`). Coverage is a
 non-regression floor — once you're at baseline coverage, additional
 coverage doesn't score. The iteration budget exists to deepen quality
 on the scorecard axes, not to chase a percentage.
 
-**Action for Run 2:** the prompt centers on the scorecard. Each
+**Action for the quality-driven experiment:** the prompt centers on the scorecard. Each
 iteration must claim a scorecard-improving move and name the axis
 delta in its commit message. iter20's stop condition is "3
 consecutive iterations cannot improve the scorecard," not "coverage
@@ -226,43 +226,43 @@ parity reached."
 
 This refinement is itself the kind of finding the iterative
 experiment is meant to surface: the *metric* you point the LLM at
-determines the kind of suite it produces. Run 1 pointed at coverage
-and got coverage. Run 2 points at quality (operationalized) and
-should produce quality. If it doesn't, that's a Run 3 finding about
+determines the kind of suite it produces. The coverage-driven baseline pointed at coverage
+and got coverage. The quality-driven experiment points at quality (operationalized) and
+should produce quality. If it doesn't, that's a cross-language finding about
 either the scorecard's design or the model's ability to optimize for
 multi-axis goals.
 
 ---
 
-## Run 2 — 2026-05-28 findings
+## Quality-driven (Python) — 2026-05-28 findings
 
-Run 2 = **Opus 4.8** + the scorecard-centered prompt set in
-[prompts/run-2/](prompts/run-2/). That changes *both* the model and the
-prompt versus Run 1, so we added a control arm — **r2b** = **Opus 4.7** + the
-*byte-identical* Run-2 prompts (only the substituted worktree path differs).
+The quality-driven experiment = **Opus 4.8** + the scorecard-centered prompt set in
+[prompts/quality/](prompts/quality/). That changes *both* the model and the
+prompt versus the coverage-driven baseline, so we added an ablation arm — **ablation** = **Opus 4.7** + the
+*byte-identical* quality prompts (only the substituted worktree path differs).
 The three points decompose the confound cleanly:
 
-| arm    | model    | prompts              | effort |
-|--------|----------|----------------------|--------|
-| Run 1  | Opus 4.7 | coverage-goal (old)  | xhigh  |
-| r2b    | Opus 4.7 | scorecard-goal (new) | xhigh  |
-| r2     | Opus 4.8 | scorecard-goal (new) | xhigh  |
+| arm       | model    | prompts              | effort |
+|-----------|----------|----------------------|--------|
+| coverage  | Opus 4.7 | coverage-goal (old)  | xhigh  |
+| ablation  | Opus 4.7 | scorecard-goal (new) | xhigh  |
+| quality   | Opus 4.8 | scorecard-goal (new) | xhigh  |
 
-Run 1 → r2b isolates the **prompt** change (model held at 4.7·xhigh); r2b → r2
+coverage → ablation isolates the **prompt** change (model held at 4.7·xhigh); ablation → quality
 isolates the **model** change (prompts held). All three are scored by
-`scripts/score_run2.py`, which applies *one* identical set of mechanical
+`scripts/score_quality.py`, which applies *one* identical set of mechanical
 measurements — the 8 auto-countable scorecard axes — to all 9 generated suites
 and the 3 human baselines, sidestepping the mutually-incompatible self-reported
 `scorecard.json` shapes each session emitted. See
-`results-{run1,run2,r2b}-scorecard.{md,json}` and the coverage tables in
-`results-{run2,r2b}.md`.
+`results-{coverage,quality,ablation}-scorecard.{md,json}` and the coverage tables in
+`results-{quality,ablation}.md`.
 
 ### 10. The prompt redesign dominates; the model bump is a marginal top-up
 
 "Beats its own baseline" on the auto-countable fragility axes:
 
-| worktree              | Run 1 (4.7·old) | r2b (4.7·new) | r2 (4.8·new) |
-|-----------------------|:---------------:|:-------------:|:------------:|
+| worktree              | coverage (4.7·old) | ablation (4.7·new) | quality (4.8·new) |
+|-----------------------|:------------------:|:------------------:|:-----------------:|
 | itsdangerous/oneshot  | ✅ | ✅ | ✅ |
 | itsdangerous/iter2    | ❌ | ✅ | ✅ |
 | itsdangerous/iter20   | ❌ | ✅ | ✅ |
@@ -274,8 +274,8 @@ and the 3 human baselines, sidestepping the mutually-incompatible self-reported
 | requests/iter20       | ❌ | ✅ | ✅ |
 | **total**             | **2 / 9** | **8 / 9** | **9 / 9** |
 
-- **Prompt effect** (Run 1 → r2b, model fixed at 4.7): **2/9 → 8/9 (+6).**
-- **Model effect** (r2b → r2, prompts fixed): **8/9 → 9/9 (+1).**
+- **Prompt effect** (coverage → ablation, model fixed at 4.7): **2/9 → 8/9 (+6).**
+- **Model effect** (ablation → quality, prompts fixed): **8/9 → 9/9 (+1).**
 
 The scorecard-centered prompt rewrite accounts for ~6× the movement of the
 4.7→4.8 model bump. The model bump's sole flip is requests/oneshot — a
@@ -286,8 +286,8 @@ least chance to be rescued by iteration.
 only 8 mechanical axes (A.1/A.2/A.4/A.5/C.1/B.1/D.1/D.2) and ignores the
 semantic ones (A.3 tautological readbacks, A.6 hand-coded charsets, B.2
 boundaries, B.3 framework-I/O, E.* correctness/REPL). It is markedly more
-generous than Run 1's hand audit, which judged only ~1/9 truly better (and
-flagged httpx/iter20 as illegitimate — see Finding 3). Run 1's 2/9 here is
+generous than the coverage-driven baseline's hand audit, which judged only ~1/9 truly better (and
+flagged httpx/iter20 as illegitimate — see Finding 3). The coverage-driven baseline's 2/9 here is
 therefore inflated relative to the careful verdict. But the *same* generous
 instrument is applied to all three arms, so the **deltas** — the actual
 decomposition — hold even though the absolute levels are soft.
@@ -297,8 +297,8 @@ decomposition — hold even though the absolute levels are soft.
 Totals across the 9 suites in each arm (baseline totals differ per repo; these
 are gen-side sums, directional):
 
-| axis (↓ = lower better)            | Run 1 | r2b | r2 | who moved it |
-|------------------------------------|------:|----:|---:|--------------|
+| axis (↓ = lower better)            | coverage | ablation | quality | who moved it |
+|------------------------------------|---------:|---------:|--------:|--------------|
 | A.1 substring-match asserts (↓)    | 65    | 9   | 0  | **prompt** (86% gone on 4.7 alone; 100% on 4.8) |
 | C.1 real-mock LOC (↓)              | 30    | 1   | 0  | **prompt** |
 | D.2 parametrize ratio (↑, per-test)| ≤0.08 | 0.05–0.25 | 0.10–0.27 | **prompt** |
@@ -306,7 +306,7 @@ are gen-side sums, directional):
 
 A.1, C.1, D.2 — the headline patterns from Finding 5 (substring matching,
 real mocking, no-parametrize unrolling) — are essentially solved by the prompt
-change alone (r2b, still on the old model). A.2 (reaching for private symbols)
+change alone (ablation, still on the old model). A.2 (reaching for private symbols)
 is the lone axis where the 4.8 model contributed *more* than the prompt,
 roughly halving the count again. Read A.2 as a trend, not an absolute — its
 regex matches any `obj._attr(` call, not only imports of private names.
@@ -316,19 +316,19 @@ regex matches any `obj._attr(` call, not only imports of private names.
 > (`patch('str')`, `Mock()`, `mock.Mock()`) and **false-matched** the HTTP `PATCH`
 > verb (`client.patch(...)`). The clean fix corrected both: it re-baselined C.1
 > (httpx baseline 3→0, phantom verbs removed; requests baseline 0→3, real
-> `mock.Mock()` caught) and lowered Run 1's tally **3/9 → 2/9** — its two marginal
+> `mock.Mock()` caught) and lowered the coverage-driven baseline's tally **3/9 → 2/9** — its two marginal
 > httpx wins had leaned on phantom baseline mocks, while requests/oneshot gained a
-> legitimate C.1 win. r2b and r2 tallies are unchanged. All three scorers + the
+> legitimate C.1 win. ablation and quality tallies are unchanged. All three scorers + the
 > aggregator now carry pytest validation suites (`tests/`,
 > `.claude/skills/test-quality/tests/`).
 
-### 12. Winning the fragility scorecard ≠ passing the full Run-2 goal
+### 12. Winning the fragility scorecard ≠ passing the full quality-driven goal
 
 The "better=YES" verdict above measures fragility axes only; it does **not**
-enforce the coverage non-regression floor that is also part of the Run-2 goal.
-Coverage (`results-run2.md`) shows the two **oneshot** arms in r2 breach it:
+enforce the coverage non-regression floor that is also part of the quality-driven goal.
+Coverage (`results-quality.md`) shows the two **oneshot** arms in quality breach it:
 
-| r2 arm           | Δ line  | Δ branch |
+| quality arm      | Δ line  | Δ branch |
 |------------------|--------:|---------:|
 | httpx/oneshot    | −6.96 % | −14.57 % |
 | requests/oneshot | −3.17 % |  −6.84 % |
@@ -339,18 +339,18 @@ better suite" diverge for those two arms. Every iter2/iter20 arm holds or beats
 the floor (itsdangerous/iter20 +2.35 line, requests/iter20 +3.34 line / +3.36
 branch).
 
-**Action for Run 3:** the scorecard tally must be *gated* on the coverage
+**Action for the cross-language experiment:** the scorecard tally must be *gated* on the coverage
 floor — an arm that regresses coverage cannot be scored "better," however clean
 its fragility axes. Otherwise oneshot wins keep flattering the headline.
 
 ### 13. iter20 now spends its budget — and 4.8 plateaus sooner than 4.7
 
-Run 1 Finding 2 was that iter20 stalled at 2–3 iterations once coverage parity
+Finding 2 of the coverage-driven baseline was that iter20 stalled at 2–3 iterations once coverage parity
 was hit. The new stop condition ("3 consecutive iterations without scorecard
 improvement, else 20") fixes it:
 
-| iter20 arm   | Run 1 | r2b (4.7) | r2 (4.8) |
-|--------------|:-----:|:---------:|:--------:|
+| iter20 arm   | coverage | ablation (4.7) | quality (4.8) |
+|--------------|:--------:|:--------------:|:-------------:|
 | itsdangerous |   2   |    17     |    9     |
 | httpx        |   3   |    10     |    7     |
 | requests     |  ~2   |    11     |    6     |
@@ -360,48 +360,48 @@ Notably **4.8 plateaus sooner than 4.7 on identical prompts** — it satisfies
 the no-improvement stop in fewer rounds, consistent with producing
 higher-quality suites earlier rather than grinding toward them.
 
-### 14. Prediction scorecard (Run 1 → Run 2)
+### 14. Prediction scorecard (coverage-driven → quality-driven)
 
 The five falsifiable predictions from `CHANGELOG.md`:
 
 | # | Prediction                              | Verdict | Evidence |
 |---|-----------------------------------------|:-------:|----------|
-| 1 | Substring-match asserts drop >80%       | ✅ | A.1 total 65 → 0 (r2); → 9 on r2b = 86%, so prompt-attributable |
+| 1 | Substring-match asserts drop >80%       | ✅ | A.1 total 65 → 0 (quality); → 9 on ablation = 86%, so prompt-attributable |
 | 2 | Private-symbol imports → zero           | ⚠️ | A.2 185 → 59: large drop, but **not zero**; proxy is noisy (matches any `obj._attr(`) |
-| 3 | No worktree git-restores baseline tests | ✅ | max identical-to-baseline = 3 empty `__init__.py` markers; Run 1 httpx/iter20 was 31/32 *real* files |
-| 4 | iter20 iterations rise toward budget    | ✅ | 2–3 → 6–9 (r2), 10–17 (r2b) |
-| 5 | Scorecard tally positive for ≥5/9       | ✅ | r2 9/9, r2b 8/9 |
+| 3 | No worktree git-restores baseline tests | ✅ | max identical-to-baseline = 3 empty `__init__.py` markers; the coverage-driven baseline's httpx/iter20 was 31/32 *real* files |
+| 4 | iter20 iterations rise toward budget    | ✅ | 2–3 → 6–9 (quality), 10–17 (ablation) |
+| 5 | Scorecard tally positive for ≥5/9       | ✅ | quality 9/9, ablation 8/9 |
 
-The seven Run-1 prediction-table rows (Finding 5/§"What we want to test")
+The seven coverage-driven prediction-table rows (Finding 5/§"What we want to test")
 map onto these: #1 anti-fragility → preds 1+2 (substring solved, private
 reduced not zeroed); #2 git recovery → pred 3 (✅); #3 REPL verification →
-every Run-2 session left a `repl_verifications.log` (process followed; broken-
+every quality-driven session left a `repl_verifications.log` (process followed; broken-
 test count not independently re-run here); #4 iter20 budget → pred 4 (✅);
 #5 framework I/O fixtures → `mock_framework` LOC present in every httpx/requests
-arm (62–153 LOC in r2), i.e. real-I/O primitives used as intended; #6/#7
+arm (62–153 LOC in quality), i.e. real-I/O primitives used as intended; #6/#7
 SUMMARY-format and `pip install -e .` hermicity → process constraints, held.
 
-### Net for Run 3
+### Net: what carried into the cross-language stage
 
 The metric you point the model at dominates the suite you get (Finding 9
 confirmed): pointing at a multi-axis quality scorecard instead of coverage
 moved 2/9 → 8/9 on the *same* model. The model upgrade is a real but small
-top-up. The open Run-3 levers: (a) gate the scorecard on the coverage floor
+top-up. The open cross-language levers: (a) gate the scorecard on the coverage floor
 (Finding 12); (b) score the semantic axes (A.3/A.6/B.2/B.3/E.*) the auto-tally
-omits, since those are where Run 1's "inflated 2/9" really lived; (c) hold the
-model fixed now that the prompt has stabilized, per the original Run-2 note.
+omits, since those are where the coverage-driven baseline's "inflated 2/9" really lived; (c) hold the
+model fixed now that the prompt has stabilized, per the original quality-driven note.
 
 ---
 
-## Run 3 — 2026-05-29 findings (cross-language: JS/TS + Go)
+## Cross-language (JS/TS + Go) — 2026-05-29 findings
 
-Run 3 asks whether the scorecard-anchored prompting that won 9/9 in Python
+The cross-language experiment asks whether the scorecard-anchored prompting that won 9/9 in Python
 generalizes. Six new repos — JS/TS: `express` (Mocha + node:assert + supertest),
 `jsonwebtoken` (Mocha + Chai + sinon), `zod` (Vitest); Go: `chi` (httptest),
 `gjson` (pure parse), `golang-jwt` (crypto) — × three policies = 18 arms,
-generated by Opus 4.8 subagents (one per worktree, same model as Run 2 for
+generated by Opus 4.8 subagents (one per worktree, same model as the quality-driven experiment for
 comparability) and scored gen-vs-baseline by the multi-language `score.py`
-(`scripts/score_run3.py` → `results-run3-scorecard.{json,md}`).
+(`scripts/score_cross_language.py` → `results-cross-language-scorecard.{json,md}`).
 
 ### 15. The result generalizes: 18/18 arms beat the human baseline
 
@@ -418,7 +418,7 @@ at the optimal floor.
 
 ### 16. Oneshot wins the axes but ships red; iteration delivers green
 
-A sharp policy split, cleaner than Run 1/2 showed:
+A sharp policy split, cleaner than the coverage-driven and quality-driven stages showed:
 
 - **All 6 oneshot arms ended RED** — 1–4 failing tests each, every one a
   *self-authored* expected-value/harness bug left unrepaired per the
@@ -428,7 +428,7 @@ A sharp policy split, cleaner than Run 1/2 showed:
 - **All 12 iterative arms (iter2 + iter20) ended GREEN.** The first repair
   pass is what converts a strong-but-broken one-shot suite into a shippable
   one. This is the clearest cross-run evidence yet that the *value of
-  iteration is correctness, not coverage* — the thing Run 1's iter20 sessions
+  iteration is correctness, not coverage* — the thing the coverage-driven baseline's iter20 sessions
   never spent their budget on.
 
 So oneshot already beats the baseline on *quality axes* but is not safe to
@@ -458,7 +458,7 @@ Three distinct causes, only one of them a real quality gap:
    *metric's blind spot*, not quality.
 3. Genuine: a smaller suite does have fewer distinct fixed vectors.
 
-**Proposed Run-4 scorecard change:** make B.1 a **ratio** (fixed-vectors per
+**Proposed scorecard change for a future round:** make B.1 a **ratio** (fixed-vectors per
 test, like D.2) instead of an absolute count, and extend the JS profile to
 count framework-matcher fixed vectors (supertest `.expect`, deep-equal
 literals). Logged to CHANGELOG `[Unreleased]`. This is a richer finding than
@@ -473,7 +473,7 @@ spot-checked independently: clean `Remove tests…` → `Generated…` git shape
 20-commit iteration histories with named per-iter moves, and suites that
 diverge structurally from their baselines — express 91 files/1128 tests →
 15/183, zod 170/1941 → 26/281 — which a git-restore cheat could not produce).
-The Run-1 `httpx/iter20` cheat (Finding 3) does not recur; the hard
+The coverage-driven baseline's `httpx/iter20` cheat (Finding 3) does not recur; the hard
 constraints in the prompt header hold up under parallel autonomous execution.
 
 ### 19. Cross-language scorer profiles need per-idiom calibration first
@@ -494,12 +494,12 @@ Lesson: a heuristic regex scorer must be calibrated against *real* suites in
 each target language before its numbers mean anything — and a one-arm pilot
 is a cheap way to surface the gap the static scorer-check misses.
 
-### Net for Run 4
+### Net: open items for a future round
 
 Scorecard-anchored prompting generalizes (18/18). The open levers are now
 about the *instrument*, not the prompt: (a) re-shape B.1 from an absolute
 count to a per-test ratio so it stops fighting D.1 (Finding 17); (b) extend
 the JS profile to count framework-matcher fixed vectors; (c) the auto-tally
 still omits the semantic axes (A.3/A.6/B.2/B.3/E.*) where real quality lives
-(carried over from Run 2). The generation side is in good shape; the
+(carried over from the quality-driven experiment). The generation side is in good shape; the
 measurement side is the frontier.

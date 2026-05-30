@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "beyond-test-coverage",
+  "owner": {
+    "name": "Michael Rollins",
+    "email": "rollins@rellify.com"
+  },
+  "metadata": {
+    "description": "Durable test-quality scoring and results dashboards from the llm-testgen-bench experiment.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "test-quality-tools",
+      "description": "Two skills: test-quality (audit/harden/generate mutation-resistant tests against a quality scorecard) and results-dashboard (render a scorecard JSON into an interactive HTML readout).",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./.claude/skills/test-quality",
+        "./.claude/skills/results-dashboard"
+      ]
+    }
+  ]
+}

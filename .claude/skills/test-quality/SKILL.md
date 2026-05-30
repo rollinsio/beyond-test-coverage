@@ -14,6 +14,10 @@ description: >-
   Python/pytest (validated), JavaScript/TypeScript (Jest, Vitest, Mocha/Chai,
   node:test), and Go — with a per-language scorer; the rubric is the same
   everywhere.
+license: MIT
+metadata:
+  author: Michael Rollins
+  version: "1.0"
 ---
 
 # test-quality
@@ -24,8 +28,10 @@ opposite of coverage-chasing suites that hit 100% yet catch nothing.
 
 This skill encodes the result of a controlled experiment: pointing test
 generation at a multi-axis *quality* scorecard (rather than a coverage number)
-produced suites that beat human-written baselines on 8 of 9 measured cells. The
-two reference docs are that experiment's distilled output:
+produced suites that beat human-written baselines on the auto-countable axes in
+9 of 9 Python suites (8 of 9 with the model held fixed — the rubric, not the
+model, drove the gain). The two reference docs are that experiment's distilled
+output:
 - `references/quality-contract.md` — 10 anti-fragility rules, each with the repair.
 - `references/scorecard.md` — the scoring axes, the improvement gate, the stop condition.
 - `scripts/score.py` — measures the auto-countable axes for any pytest suite.
