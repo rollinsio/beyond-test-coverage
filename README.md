@@ -112,8 +112,8 @@ The relationship to the benchmark's own tooling:
   every arm uniformly). It is *not* the skill's general scorer.
 
 The skill is the general tool you'd apply to any suite; `score_run2.py` is this
-experiment's instrument. The bundled copy is byte-identical to its upstream;
-its redistribution license is TBD.
+experiment's instrument. The bundled copy is byte-identical to its upstream and
+is covered by this repo's [MIT license](LICENSE).
 
 ## Hermicity notes for the next session
 
@@ -148,3 +148,9 @@ several times. To preserve every revision:
 If a finding suggests changing the scorecard itself (axes, weights,
 measurement), that's a CHANGELOG entry under the `[Unreleased]`
 section and gets folded into the next run's design.
+
+## License
+
+[MIT](LICENSE) © Michael Rollins. The third-party repositories under test
+are *not* included in this repo (each is cloned locally and git-ignored);
+they remain under their own respective licenses.
