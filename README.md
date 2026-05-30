@@ -1,156 +1,185 @@
-# LLM test-generation benchmark
+# beyond-test-coverage
 
-An iterative experiment: have an LLM regenerate the test suites of
-three open-source Python repos (`pallets/itsdangerous`, `encode/httpx`,
-`psf/requests`) from scratch under different iteration policies, and
-measure whether the regenerated suites are *better* than the originals.
+**Are LLM-generated tests better or worse than the ones humans write?**
+The only honest way to answer is to put numbers on it — and *code
+coverage* is a vanity metric that doesn't. 100%-covered suites are
+routinely brittle, over-mocked, and noisy; coverage tells you a line
+*ran*, not that a test would *catch the regression that breaks it*.
 
-Each "Run" is a complete pass through the experiment with a frozen
-prompt set. Findings from each run inform the prompt set for the next.
+`beyond-test-coverage` measures the thing coverage can't: **test
+quality**. Point it at a repository and it regenerates the test suite
+from the source through a **read → build → evaluate** loop, optimizing
+for the qualities that make a suite actually load-bearing:
 
-## Starting Run 2 (next session, fresh)
+- **Anti-fragility** — tests that survive a benign refactor. No
+  asserting on error-message *substrings*, no recomputing the expected
+  value with the same code under test, no reaching into private
+  internals, no `||`-joined "passes if any of these" assertions.
+- **Rigor** — assert against *known-good fixed values* (precomputed
+  vectors, inline snapshots), cover the boundaries, and exercise real
+  behavior end-to-end rather than re-deriving it.
+- **Mocking discipline** — zero hand-rolled mocks of the unit under
+  test. Drive the real thing through framework primitives (supertest,
+  `httptest`, fake timers) or real objects; mock only true external
+  boundaries.
+- **Reuse & efficiency** — fold repetition into table-driven /
+  parametrized cases instead of copy-paste; fewer lines per test.
+- **Correctness** — every test passes, and every non-obvious assumption
+  is verified against the real library, not guessed.
+- **Coverage as a floor, not a target** — never regress it, never chase
+  it.
 
-```bash
-cd path/to/llm-testgen-bench   # the repo root
+An **evaluate** function (the [`test-quality`](.claude/skills/test-quality/)
+scorer) measures each of these axes on the generated suite *and* on the
+original, and reports a win/loss/tie per axis. If the suite hasn't beaten
+the baseline — or isn't green — the loop reads, rebuilds, and re-evaluates.
+Through that loop the suite improves not just in coverage but in
+**quality**: the result is a test suite that is **stronger, more robust,
+and less noisy** than the surface it replaced.
 
-# Materialize the 9 Run-2 worktrees + per-worktree prompts.
-# Creates wt-r2-{oneshot,iter2,iter20} per repo on rex-r2-wt-* branches.
-# Run-1 worktrees are NOT touched.
-python scripts/setup_run2.py
+## Does it actually work?
 
-# Open 9 iTerm tabs, one per worktree, running Opus 4.8 with the prompt.
-./scripts/launch_run2.sh
+To find out, we took a set of widely-used open-source libraries with
+**exceptional, maintainer-written test suites**, measured their baseline
+on every axis, **deleted every test**, and regenerated the suite from the
+source under increasing iteration budgets (a single pass, up to
+iterate-until-it-stops-improving) — scoring each generated suite against
+the human original. Every round's findings fed back into the prompts and
+the scorer, hardening the tool with each pass.
+
+Nine libraries, three languages, the strongest test suites we could find:
+
+| Library | Lang | What it is | Beat the human baseline? |
+|---|---|---|:--:|
+| `pallets/itsdangerous` | Python | signing / serialization | ✅ |
+| `encode/httpx` | Python | HTTP client | ✅ |
+| `psf/requests` | Python | HTTP client | ✅ |
+| `expressjs/express` | JS | web framework | ✅ |
+| `auth0/node-jsonwebtoken` | JS | JWT | ✅ |
+| `colinhacks/zod` | TS | schema validation | ✅ |
+| `go-chi/chi` | Go | HTTP router | ✅ |
+| `tidwall/gjson` | Go | JSON query | ✅ |
+| `golang-jwt/jwt` | Go | JWT | ✅ |
+
+### Results
+
+The headline is the gap between *chasing coverage* and *chasing quality*.
+When the loop was pointed at **coverage**, the regenerated suites beat the
+human baseline on only **2 of 9** runs — they hit coverage parity and
+stopped. Re-aimed at the **quality scorecard**, they won **every** run:
+
+```
+Regenerated suites that beat the human-written test suite
+──────────────────────────────────────────────────────────
+Coverage-driven   (Python)   ██░░░░░░░░   2 / 9     22%
+Quality-driven    (Python)   ██████████   9 / 9    100%
+Quality-driven    (JS / TS)  ██████████   9 / 9    100%
+Quality-driven    (Go)       ██████████   9 / 9    100%
 ```
 
-After all 9 sessions finish, the verification + reports workflow is
-the same as Run 1 — see `scripts/verify_run.sh` and the structure of
-`reports/`.
+Across **27 quality-driven runs** (9 libraries × 3 iteration budgets),
+**every one beat its human-written baseline** on the auto-countable axes —
+9/9 on Python, 18/18 across JS/TS and Go. The wins are consistent and
+structural: the generated suites are dramatically **more LOC-efficient**
+and **more parametrized** than every baseline, carry **zero fragile
+substring/private/recomputed assertions**, and use **no hand mocks** of
+the code under test — while holding or raising coverage.
 
-## What the new session should know
+Two honest caveats the numbers also surfaced:
 
-- The success criterion for Run 2 is **the quality scorecard in
-  `prompts/run-2/quality_scorecard.md`**, not coverage %. Coverage is a
-  non-regression floor. This is the central change from Run 1.
-- The full per-run-delta is in [CHANGELOG.md](CHANGELOG.md).
-- Run 1 results and the integrity issue with `httpx/wt-iter20` are
-  documented in [runs/run-1.md](runs/run-1.md) and
-  [reports/VERIFICATION.md](reports/VERIFICATION.md).
-- **Run 2 results at a glance:** open
-  [`docs/scorecard-results.html`](docs/scorecard-results.html) — an
-  interactive dashboard of the per-axis baseline-vs-generated values
-  across all three arms (Run 1 → r2b → Run 2), the model-vs-prompt
-  decomposition (2/9 → 8/9 → 9/9), the coverage-floor caveat, and the
-  full table of prompt-design changes with measured outcomes.
-- **Run 3 results at a glance (cross-language):** open
-  [`docs/run3-results.html`](docs/run3-results.html) — the 18-arm JS/TS +
-  Go benchmark (6 repos × oneshot/iter2/iter20). **All 18 arms beat their
-  baseline**; the dashboard shows the per-axis win/tie/loss distribution,
-  the oneshot-red / iterative-green policy split, the full per-arm matrix,
-  and the B.1 count-vs-ratio caveat (every loss in the run is B.1). See
-  [FINDINGS.md](FINDINGS.md) §15–19.
+- **A single pass already wins the quality axes** for every library — but
+  it tends to ship 1–4 self-authored failing tests. The *iteration* budget
+  is what makes the suite green and widens the margin. Quality and
+  shippability are different milestones.
+- The one axis the generated suites sometimes lose is **fixed-vector
+  count**, because we score it as an absolute count that scales with suite
+  size and competes with LOC-efficiency. (Re-shaping it into a per-test
+  *ratio* is the next change — see [`CHANGELOG.md`](CHANGELOG.md).)
+
+**Explore the numbers yourself:**
+
+- [`docs/run3-results.html`](docs/run3-results.html) — interactive
+  dashboard for the cross-language run (JS/TS + Go): per-axis win/tie/loss
+  across all 18 runs, the one-shot-vs-iterate split, and the full
+  per-suite matrix.
+- [`docs/scorecard-results.html`](docs/scorecard-results.html) — the
+  Python dashboard, including the decomposition of *why* coverage-driven
+  scored 2/9 and quality-driven scored 9/9.
+- [`FINDINGS.md`](FINDINGS.md) — the full running analysis.
+
+## The quality scorecard
+
+The criteria above are a multi-axis rubric; the scorer auto-counts the
+mechanical ones and leaves the judgement ones to review:
+
+| Group | Axes |
+|---|---|
+| **A — anti-fragility** | A.1 error-substring asserts · A.2 private-symbol access · A.3 tautological readbacks · A.4 recomputed expected values · A.5 `‖`-joined matches · A.6 hand-coded charsets |
+| **B — rigor** | B.1 fixed-vector asserts / snapshots · B.2 boundary coverage · B.3 framework-primitive integration |
+| **C — mocking** | C.1 hand mocks of the unit (target 0) · C.2 framework primitives (legitimate) |
+| **D — reuse** | D.1 LOC per test · D.2 parametrize ratio · D.3 fixture/inheritance reuse |
+| **E — correctness** | E.1 all green · E.2 out-of-band-verified assumptions · E.3 mutation sensitivity |
+| **F — coverage floor** | F.1 line · F.2 branch — non-regression only |
+
+[`scripts/...score.py`](.claude/skills/test-quality/scripts/score.py)
+auto-counts A.1/A.2/A.4/A.5, B.1, C.1/C.2, D.1/D.2 across Python, JS/TS,
+and Go and prints the head-to-head Win/Loss/Tie tally. The rest are
+review-time judgement calls.
+
+## Use it on your own suite
+
+The reusable artifact is the bundled [`test-quality`](.claude/skills/test-quality/)
+Claude Code skill — the scorer, the anti-fragility contract, and the
+read→build→evaluate loop definition. A clone is self-contained, so the
+skill is auto-discovered when you open the repo in Claude Code. Score any
+suite directly:
+
+```bash
+python .claude/skills/test-quality/scripts/score.py \
+    --tests path/to/tests --baseline path/to/old_tests --lang python|js|go
+```
 
 ## Repository layout
 
 ```
 .
-├── .claude/
-│   └── skills/
-│       └── test-quality/ # bundled quality-scorecard skill (see below)
-├── README.md             # this file
-├── CHANGELOG.md          # run-to-run delta
-├── FINDINGS.md           # running findings log (Run 1: §1–9; Run 2: §10–14 + decomposition)
-├── audit_itsdangerous.md # deep 3-agent fragility audit (Run 1)
-├── baseline_summary.md   # Run 1 baseline coverage figures
-├── configs/              # versioned bench.coveragerc per repo
-├── docs/
-│   ├── scorecard-results.html  # Run 1→2 Python axes before/after + changes dashboard
-│   └── run3-results.html       # Run 3 cross-language (JS/TS + Go) 18-arm dashboard
-├── prompts/
-│   ├── run-2/            # Run 2 prompt set (scorecard-anchored, Python)
-│   └── run-3/            # Run 3 prompt set (language-parameterized: JS/TS + Go)
-├── reports/              # 9 per-run reports + VERIFICATION + index
-├── runs/
-│   └── run-1.md          # preserved Run 1 worktree inventory
-└── scripts/
-    ├── setup_run2.py     # creates Run 2 worktrees + materializes prompts
-    ├── setup_run3.py     # creates the 18 Run 3 (JS/Go) worktrees + deps + prompts
-    ├── score_run3.py     # Run 3 gen-vs-baseline recompute (multi-language)
-    ├── scorer_check.py   # baseline-only JS/Go profile validation
-    ├── launch_run2.sh    # opens 9 iTerm tabs for Run 2
-    ├── verify_run.sh     # re-runs a single worktree's suite for verification
-    ├── aggregate_results.py  # cross-worktree coverage summary; --run N selects wt-rN-*
-    └── ...               # gen_prompts.py + launch_all.sh from Run 1
+├── .claude/skills/test-quality/  # the reusable scorer + rubric + contract
+├── docs/                         # interactive results dashboards
+├── prompts/                      # the prompt sets that drive generation
+├── scripts/                      # setup, scoring, and aggregation harness
+├── configs/                      # per-repo coverage config
+├── reports/ · runs/              # preserved per-run reports & inventories
+├── results-*.{json,md}           # the scored results behind the dashboards
+├── FINDINGS.md                   # running analysis (what we learned)
+└── CHANGELOG.md                  # how the rubric & prompts evolved per round
 ```
 
-OSS source trees live alongside (in `itsdangerous/`, `httpx/`,
-`requests/`) and are `.gitignore`d. Each is its own git clone with its
-own history; the `rex-wt-*` branches inside them preserve every run's
-generated test content.
+The nine libraries under test are each cloned locally into their own
+git-ignored directory; **they are not redistributed here** and remain
+under their own licenses. Generated suites live on per-run branches inside
+those clones.
 
-## Bundled skill: `test-quality`
+## How the experiment is organized
 
-This repo ships the [`test-quality`](.claude/skills/test-quality/) Claude Code
-skill under `.claude/skills/`, so a clone is self-contained and the skill is
-auto-discovered when you open the repo in Claude Code. It is the canonical,
-cross-language (Python / JS-TS / Go) quality scorer, and the benchmark's rubric
-is its Python instantiation — the two share the **same axis taxonomy**
-(A.1–A.6 anti-fragility, B.1–B.3 rigor, C.1–C.2 mocking, D.1–D.3 reuse,
-E.1–E.3 correctness, F.1–F.2 coverage floor):
+The work proceeded in rounds; each round froze a prompt set, ran it, and
+fed its findings into the next. They're referred to as **Run 1/2/3** in
+the logs and dashboards:
 
-- `references/scorecard.md` — the multi-axis scorecard + the "did I improve?"
-  gate and iterate-to-plateau stop condition.
-- `references/quality-contract.md` — the anti-fragility rules with examples.
-- `scripts/score.py` — the per-language scorer (auto-counts A.1/A.2/A.4/A.5/
-  B.1/C.1/C.2/D.1/D.2).
+- **Run 1 — the coverage-driven baseline.** Python, prompts aimed at
+  coverage %. Beat the human baseline on 2/9 (it stopped at parity). This
+  is the control that motivated everything else.
+- **Run 2 — quality-driven, Python.** Same repos, prompts re-aimed at the
+  quality scorecard. 9/9. (A model upgrade contributed a marginal top-up;
+  the prompt redesign did the heavy lifting — see FINDINGS §10.)
+- **Run 3 — quality-driven, cross-language.** New JS/TS + Go libraries,
+  same approach. 18/18 — the result generalizes beyond Python.
 
-The relationship to the benchmark's own tooling:
-
-- `prompts/run-2/quality_scorecard.md` is the **Python-specific instantiation**
-  of the skill's `references/scorecard.md` — same axes, repo-specific examples.
-- `scripts/score_run2.py` is a **benchmark-specific recompute** of just the
-  auto-countable axes across the 9 worktrees + 3 baselines (so it can score
-  every arm uniformly). It is *not* the skill's general scorer.
-
-The skill is the general tool you'd apply to any suite; `score_run2.py` is this
-experiment's instrument. The bundled copy is byte-identical to its upstream and
-is covered by this repo's [MIT license](LICENSE).
-
-## Hermicity notes for the next session
-
-- The shared `<repo>/base/.venv` is sufficient for all 9 worktrees.
-  Sessions should NOT run `pip install -e .` from inside worktrees
-  (Run 1 vulnerability: it clobbers the shared venv's editable
-  install). The Run 2 prompts encode this constraint.
-- The `requests/base/.venv` editable install was clobbered to
-  `wt-iter20/` during Run 1; reset to `base/` on 2026-05-28. If
-  Run 2 sessions also clobber it, fix with:
-  `requests/base/.venv/bin/pip install -e requests/base --no-deps`.
-- The aggregator script's src-prefix filter handled only relative
-  paths; coverage JSONs store absolute keys when the package resolves
-  via an editable install. **Fixed** — it now matches on a normalized
-  path segment and is parameterized by `--run N`. `scripts/verify_run.sh`
-  remains authoritative for per-worktree verification.
-
-## Iteration philosophy
-
-Each run produces evidence that refines the next prompt set. The
-prompt set is the experiment's instrument; we expect to revise it
-several times. To preserve every revision:
-
-- Run N's prompts live under `prompts/run-N/` and don't get edited
-  after the run executes.
-- Run N's worktrees live on disk and use branch prefix `rex-rN-wt-*`
-  (Run 1 used the legacy `rex-wt-*` since the convention came later).
-- `CHANGELOG.md` records the per-run prompt-set delta.
-- `FINDINGS.md` records the per-run findings that motivate the next
-  changes.
-
-If a finding suggests changing the scorecard itself (axes, weights,
-measurement), that's a CHANGELOG entry under the `[Unreleased]`
-section and gets folded into the next run's design.
+Each round's prompts live frozen under `prompts/run-N/`; `CHANGELOG.md`
+records the rubric/prompt delta and `FINDINGS.md` the evidence. Rubric
+changes themselves queue under CHANGELOG `[Unreleased]` for the next round.
 
 ## License
 
 [MIT](LICENSE) © Michael Rollins. The third-party repositories under test
-are *not* included in this repo (each is cloned locally and git-ignored);
-they remain under their own respective licenses.
+are *not* included in this repo (each is cloned locally and git-ignored)
+and remain under their own respective licenses.
