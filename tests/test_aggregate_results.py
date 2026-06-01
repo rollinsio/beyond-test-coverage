@@ -47,6 +47,74 @@ def test_experiments_map_to_worktree_prefix(aggregate, experiment, prefix):
     assert aggregate.EXPERIMENTS[experiment] == prefix
 
 
+# ── render_markdown: the table + per-iteration history rendering ─────────────
+def test_render_markdown_table_row_and_iteration_history(aggregate):
+    R = aggregate.WorktreeResult
+    results = [
+        R(repo="httpx", policy="oneshot", has_metrics=True,
+          baseline_line_pct=100.0, final_line_pct=95.95, line_delta_pct=-4.05,
+          baseline_branch_pct=97.27, final_branch_pct=92.77, branch_delta_pct=-4.50,
+          test_loc=4147, mock_real_loc=0, mock_framework_loc=96, mock_real_ratio=0.0,
+          iterations=[]),
+        R(repo="itsdangerous", policy="iter2", has_metrics=True,
+          baseline_line_pct=97.65, final_line_pct=100.0, line_delta_pct=2.35,
+          test_loc=1185,
+          iterations=[{"iter": 1, "line_pct": 50.0, "branch_pct": 40.0, "statements": 100},
+                      {"iter": 2, "line_pct": 100.0, "branch_pct": 100.0, "statements": 120}]),
+    ]
+    md = aggregate.render_markdown(results)
+    assert md.startswith("# Benchmark results")
+    # the httpx row: has_metrics ✓, signed delta, framework-mock count surfaced
+    assert "| httpx | oneshot | ✓ |" in md
+    assert "95.95 %" in md and "-4.05" in md and "| 96 |" in md
+    # per-iteration history only for the result that has iterations
+    assert "### itsdangerous / iter2" in md
+    assert "| 2 | 100.00 | 100.00 | 120 |" in md
+    assert "### httpx / oneshot" not in md   # no iterations → no history block
+
+
+def test_render_markdown_marks_absent_metrics_with_dash(aggregate):
+    R = aggregate.WorktreeResult
+    md = aggregate.render_markdown([R(repo="requests", policy="iter20", has_metrics=False)])
+    assert "| requests | iter20 | — |" in md
+
+
+# ── main(): end-to-end over a fake worktree (compute_one → render → write) ────
+def _cov(stmts, missing, branches, covered, partial):
+    return {"files": {"demo/m.py": {"summary": {
+        "num_statements": stmts, "missing_lines": missing, "num_branches": branches,
+        "covered_branches": covered, "num_partial_branches": partial}}}}
+
+
+def test_main_aggregates_a_worktree_and_marks_absent(aggregate, tmp_path, monkeypatch):
+    import json
+    repo = tmp_path / "demo"
+    (repo / "base" / ".rex_metrics").mkdir(parents=True)
+    (repo / "base" / ".rex_metrics" / "baseline_coverage.json").write_text(
+        json.dumps(_cov(10, 1, 4, 3, 1)))                 # baseline line = 90%
+    wt = repo / "wt-r2-oneshot"
+    (wt / ".rex_metrics").mkdir(parents=True)
+    (wt / ".rex_metrics" / "generated_coverage.json").write_text(
+        json.dumps(_cov(10, 0, 4, 4, 0)))                 # final line = 100%
+    (wt / "tests").mkdir()
+    (wt / "tests" / "t.py").write_text("def test_a():\n    assert 1 == 1\n")
+
+    monkeypatch.setattr(aggregate, "ROOT", tmp_path)
+    monkeypatch.setattr(aggregate, "REPOS", {"demo": {"src_prefix": "demo", "tests_dir": "tests"}})
+    monkeypatch.setattr("sys.argv", ["aggregate_results.py", "--experiment", "quality"])
+
+    assert aggregate.main() == 0
+
+    rows = {(r["repo"], r["policy"]): r for r in json.loads((tmp_path / "results-quality.json").read_text())}
+    one = rows[("demo", "oneshot")]
+    assert one["has_metrics"] is True
+    assert one["baseline_line_pct"] == 90.0
+    assert one["final_line_pct"] == 100.0
+    assert one["line_delta_pct"] == 10.0
+    assert rows[("demo", "iter2")]["has_metrics"] is False   # no worktree → absent row
+    assert (tmp_path / "results-quality.md").exists()
+
+
 # ── _iter_cov: tolerate coverage.json vs cov.json ────────────────────────────
 def test_iter_cov_prefers_coverage_json(aggregate, tmp_path):
     (tmp_path / "coverage.json").write_text("{}")

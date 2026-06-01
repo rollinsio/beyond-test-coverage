@@ -1,0 +1,12 @@
+# Tooling for running and verifying the benchmark's measurement scripts.
+#   pytest                — the unit/integration suites under tests/ and each skill's tests/
+#   pytest-cov            — coverage floor (`pytest --cov=scripts`)
+#   mutmut (<3)           — mutation testing; v2 mutates in place, which the
+#                           path-loaded scorer modules require. See setup.cfg [mutmut].
+#
+# Quick verification that the tests actually catch breakage:
+#   python scripts/sabotage_check.py     # curated mutations — must all be caught
+#   mutmut run && mutmut results         # exhaustive mutation pass
+pytest>=8
+pytest-cov>=5
+mutmut>=2,<3

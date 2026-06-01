@@ -63,7 +63,7 @@ def axis_distribution(arms: list[dict], keys: list[str]) -> dict[str, dict[str, 
     return dist
 
 
-def build_html(baselines: dict, arms: list[dict], title: str,
+def build_html(arms: list[dict], title: str,
                subtitle: str, source_name: str) -> str:
     present = [a for a in arms if a.get("present")]
     better = [a for a in present if a.get("better")]
@@ -238,7 +238,6 @@ def main() -> int:
 
     src = Path(args.scorecard)
     data = json.loads(src.read_text())
-    baselines = data.get("baselines", {})
     arms = data.get("arms", [])
     if not arms:
         ap.error(f"{src} has no 'arms' array — is it a {{baselines, arms}} scorecard JSON?")
@@ -246,7 +245,7 @@ def main() -> int:
     title = args.title or src.stem.replace("results-", "").replace("-", " ").replace("_", " ").strip().title()
     out = Path(args.out) if args.out else src.with_suffix(".html")
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(build_html(baselines, arms, title, args.subtitle, src.name))
+    out.write_text(build_html(arms, title, args.subtitle, src.name))
     print(f"wrote {out}  ({sum(1 for a in arms if a.get('present'))} arms, "
           f"{sum(1 for a in arms if a.get('better'))} beat baseline)")
     return 0
