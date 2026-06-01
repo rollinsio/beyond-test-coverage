@@ -3,7 +3,7 @@
   "name": "beyond-test-coverage",
   "owner": {
     "name": "Michael Rollins",
-    "email": "rollins@rellify.com"
+    "email": "michael@rollins.io"
   },
   "metadata": {
     "description": "Durable test-quality scoring and results dashboards from the llm-testgen-bench experiment.",
