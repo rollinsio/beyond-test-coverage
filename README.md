@@ -1,6 +1,14 @@
 # beyond-test-coverage
 
-## Are LLM-generated tests better human written tests?
+**A Claude Code skill that hardens test *quality*, not coverage** — packaged
+with the cross-language benchmark that built and validated it. The skill
+([`test-quality`](.claude/skills/test-quality/)) audits, hardens, or generates
+unit tests against a multi-axis quality scorecard. Everything else in this repo
+is the experiment that derived that scorecard and proved the approach beats
+human-written suites across nine libraries in three languages.
+[Install it →](#use-it-on-your-own-suite)
+
+## Are LLM-generated tests better than human-written tests?
 
 We need to put numbers to it. *Code
 coverage* is a vanity metric. 100%-covered suites are
