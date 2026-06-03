@@ -55,18 +55,33 @@ Finding 17 (B.1).
   dirs). Both scripts skip any target whose `<repo>/base` clone is absent, so the
   committed JS/Go run is undisturbed.
 
-### Executed — Kotlin + Swift generation (2 pilot arms)
-- Ran the delete-and-regenerate loop on **kotlin-result** (JDK 17 + Gradle
-  wrapper, `./gradlew :kotlin-result:jvmTest`) and **SwiftyJSON** (Swift 6.1.2,
-  `swift test`). Both regenerated suites are **green** and **beat the human
-  baseline** on the countable axes:
-  - kotlin-result: 63 tests, **2 wins / 0 losses / 6 ties** (B.1 50 v 0, D.1 6.7 v 14.95).
-  - SwiftyJSON: 20 tests (Swift Testing, parametrized), **3 wins / 0 losses / 4 ties**
-    (B.1 28 v 24, D.1 10.5 v 18.67, D.2 0.1 v 0).
-- Scores in `results-kotlin-swift-scorecard.{json,md}`; narrative in
-  `reports/kotlin-swift-generation.md`; the regenerated test code is preserved
-  under `reports/generated-suites/`. The remaining four targets (the larger
-  kotlinx/swift-apple repos) are configured but not yet run.
+### Executed — Kotlin + Swift generation matrix (full 6×3 = 18 arms)
+- Ran the delete-and-regenerate loop across **all six repos × three iteration
+  policies** (oneshot / iter2 / iter20), built/run with the real toolchains
+  (JDK 17 + each repo's Gradle wrapper; Apple Swift 6.1.2). The two largest repos
+  (kotlinx.serialization → JSON module; swift-collections → OrderedCollections)
+  are scoped to a coherent core module; baseline is each repo's whole human suite.
+- **Result: 18/18 arms beat the human baseline** on the countable axes;
+  **15/18 green**. The three reds are all *oneshot* and are **compile** failures
+  (a `private` type in `@Test(arguments:)`; mutating a `let`; a `JsonObject`/`Map`
+  type-inference site) left unrepaired per the one-pass policy — iter2 fixes each
+  in one round. This reproduces the Python/JS "one pass wins the quality axes but
+  ships failures; iteration makes it green" finding in Kotlin and Swift.
+  Iteration also deepens quality (e.g. swift-collections B.1 3→31→45 across
+  oneshot→iter2→iter20, flipping the B.1 loss to a win).
+- Integrity: every W/L/T was **re-scored by the orchestrator independently of the
+  generating agent**, and every green count **re-run from the real toolchain**;
+  one apparent green (a stale verification-probe XML) was caught and corrected to
+  red on re-run.
+- Scores in `results-kotlin-swift-scorecard.{json,md}` (the `{baselines, arms}`
+  shape, via `scripts/score_kotlin_swift_matrix.py` over
+  `bench-clones/.matrix-manifest.json`); narrative in
+  `reports/kotlin-swift-generation.md`; the decisive (iter20) suite for each repo
+  is preserved under `reports/generated-suites/`.
+- Caveat: the Kotlin/Swift profiles are heuristic. The recurring B.1 loss on the
+  large repos is the absolute-count-vs-suite-size artifact this CHANGELOG's
+  `[Unreleased]` B.1-as-ratio proposal targets — the scoped arms are compared
+  against a much larger whole-repo baseline.
 
 ---
 

@@ -176,15 +176,23 @@ against six real, well-tested suites — `kotlinx.serialization`,
 and `SwiftyJSON` — with every calibration finding pinned as a named regression in
 [`tests/test_score.py`](.claude/skills/test-quality/tests/test_score.py).
 
-Beyond calibration, **two Kotlin/Swift generation arms were executed** the same
-way as the nine-library experiment — delete the human suite, regenerate from
-source against the scorecard, verify green with the real toolchain, score vs the
-baseline. Both win: **kotlin-result** (`./gradlew :kotlin-result:jvmTest`, 63
-tests) went 2/0/6 and **SwiftyJSON** (`swift test`, Swift Testing, 20 tests) went
-3/0/4 — see [`results-kotlin-swift-scorecard.md`](results-kotlin-swift-scorecard.md)
-and [`reports/kotlin-swift-generation.md`](reports/kotlin-swift-generation.md).
-The remaining four targets (the larger kotlinx / apple-swift repos) are
-configured but not yet run.
+Beyond calibration, the **full Kotlin/Swift generation matrix was executed** the
+same way as the nine-library experiment — **six repos × three iteration policies
+(oneshot / iter2 / iter20) = 18 arms**, each deleting the human suite,
+regenerating from source against the scorecard, building/running with the real
+toolchain (JDK 17 + Gradle; Apple Swift 6.1.2), and scoring vs the human
+baseline. **All 18 arms beat their baseline** on the countable axes; **15 are
+green** — the three reds are all *oneshot* (one pass, no repair) and fail to
+*compile*, the same "one pass wins quality but ships failures; iteration makes it
+green" pattern the Python/JS runs showed. Every W/L/T was re-scored independently
+of the generating agent, and every green count re-run from the real toolchain.
+The two largest repos (`kotlinx.serialization`, `swift-collections`) are scoped to
+a coherent core module, stated explicitly. See
+[`results-kotlin-swift-scorecard.md`](results-kotlin-swift-scorecard.md) and
+[`reports/kotlin-swift-generation.md`](reports/kotlin-swift-generation.md).
+(These profiles are heuristic, not the empirically-validated Python set, so read
+the axis counts as toolchain-verified trends confirmed by reading, not validated
+ground truth.)
 
 ## Repository layout
 
