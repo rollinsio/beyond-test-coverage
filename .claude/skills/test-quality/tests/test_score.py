@@ -338,9 +338,279 @@ def test_js_c2_counts_sinon_fake_timers_as_legit_framework(tmp_path):
     assert m["C1_mock_real"] == 0
 
 
+# ───────────────────────── Kotlin profile ───────────────────────────────────
+def test_detect_lang_kotlin(tmp_path):
+    write(tmp_path, "src/commonTest/kotlin/FooTest.kt", "@Test\nfun a() {}\n")
+    assert score.detect_lang(tmp_path) == "kotlin"
+
+
+def test_kotlin_test_file_detection_source_sets(tmp_path):
+    # Tests live in a test source set (test/, commonTest/, jvmTest/, …) or a
+    # *Test/*Tests/*Spec/*IT-named file; main source must NOT count.
+    write(tmp_path, "src/commonTest/kotlin/AndTest.kt", "@Test fun a() {}\n")   # commonTest set
+    write(tmp_path, "core/jvm/test/ConvertersTest.kt", "@Test fun b() {}\n")    # jvm/test set
+    write(tmp_path, "src/test/kotlin/Helper.kt", "val x = 1\n")                 # in test/ dir -> counts
+    write(tmp_path, "foo/MySpec.kt", "class MySpec\n")                          # *Spec.kt name
+    write(tmp_path, "src/commonMain/kotlin/Result.kt", "class Result\n")        # main source -> NOT a test
+    assert score.measure(tmp_path, "kotlin")["files"] == 4
+
+
+def test_kotlin_test_def_counts_junit_annotations_not_config(tmp_path):
+    # @Test / @ParameterizedTest / @RepeatedTest / @TestFactory are tests;
+    # @TestInstance is class config and must NOT count (the `@Test\b` word
+    # boundary excludes the longer annotation names; each longer one is added back
+    # by name and is itself never double-counted as a bare @Test).
+    body = (
+        "@TestInstance(Lifecycle.PER_CLASS)\n"               # config -> 0
+        "class FooTest {\n"
+        "  @Test fun a() {}\n"                               # 1
+        "  @ParameterizedTest fun b() {}\n"                  # 1
+        "  @RepeatedTest(3) fun c() {}\n"                    # 1
+        "  @TestFactory fun d() = listOf<DynamicTest>()\n"   # 1
+        "}\n"
+    )
+    write(tmp_path, "src/test/kotlin/FooTest.kt", body)
+    assert score.measure(tmp_path, "kotlin")["test_count"] == 4
+
+
+def test_kotlin_kotest_leaf_requires_block_DATETIME_regression(tmp_path):
+    # Regression (kotlinx-datetime ConvertersTest): a bare local-helper call like
+    # `test("Z")` (no body) is NOT a framework test and must NOT count; a Kotest
+    # leaf `should("…") { … }` / `it("…") { … }` (always has a body) must count.
+    body = (
+        "class TzTest {\n"
+        "  @Test fun timeZone() {\n"
+        "    fun test(tzid: String) { check(tzid) }\n"   # local helper def -> not a test
+        "    test(\"Z\")\n"                               # bare call -> NOT counted
+        "    test(\"America/New_York\")\n"                # bare call -> NOT counted
+        "  }\n"
+        "}\n"
+        "class SpecTest : ShouldSpec({\n"
+        "  should(\"serialize ints\") { check(1) }\n"     # Kotest leaf -> counted
+        "  it(\"round-trips\") { check(2) }\n"            # Kotest leaf -> counted
+        "})\n"
+    )
+    write(tmp_path, "src/commonTest/kotlin/TzTest.kt", body)
+    assert score.measure(tmp_path, "kotlin")["test_count"] == 3   # 1 @Test + should + it
+
+
+def test_kotlin_b1_triple_quote_and_named_expected_SERIALIZATION_idiom(tmp_path):
+    # kotlinx.serialization idiom: inline triple-quoted JSON expected, and the
+    # kotlin.test `expected = "literal"` named-arg form (expected comes first).
+    body = '''@Test fun a() {
+    assertEquals("""{"k":"v","n":1}""", encode(x))
+    assertEquals(expected = "a-long-serial-name", actual = n)
+    assertEquals(expected = "short", actual = n)
+    assertEquals(expected = 42, actual = n)
+}
+'''
+    write(tmp_path, "src/commonTest/kotlin/ATest.kt", body)
+    assert score.measure(tmp_path, "kotlin")["B1_fixed_vector"] == 2
+
+
+def test_kotlin_b1_12char_boundary_and_second_position(tmp_path):
+    body = (
+        "@Test fun a() {\n"
+        "  assertEquals(\"twelvecharss\", x)\n"        # exactly 12 -> 1
+        "  assertEquals(\"elevenchars\", x)\n"         # 11 -> 0
+        "  assertEquals(actual, \"twelvecharss\")\n"   # literal 2nd position -> 1
+        "}\n"
+    )
+    write(tmp_path, "src/test/kotlin/BTest.kt", body)
+    assert score.measure(tmp_path, "kotlin")["B1_fixed_vector"] == 2
+
+
+def test_kotlin_a1_message_matchers_not_type_checks_SERIALIZATION_regression(tmp_path):
+    # Regression (kotlinx.serialization): `.message` fed to contains / assertContains
+    # is a substring smell (A.1); `assertTrue(x.message is SomeType)` is a TYPE
+    # check, not a message-text assertion, and must NOT count.
+    body = (
+        "@Test fun a() {\n"
+        "  assertTrue(e.message!!.contains(\"boom\"))\n"             # contains -> A1
+        "  assertContains(assertNotNull(e.message), \"FooOpen\")\n"  # assertContains(msg) -> A1
+        "  assertTrue(deserialized.message is SimpleMessage)\n"      # type check -> NOT A1
+        "}\n"
+    )
+    write(tmp_path, "src/test/kotlin/CTest.kt", body)
+    assert score.measure(tmp_path, "kotlin")["A1_substring_match"] == 2
+
+
+def test_kotlin_a5_or_joined_on_message(tmp_path):
+    body = "@Test fun a() {\n  assertTrue(e.message!!.contains(x) || e.message!!.contains(y))\n}\n"
+    write(tmp_path, "src/test/kotlin/DTest.kt", body)
+    assert score.measure(tmp_path, "kotlin")["A5_or_joined"] == 1
+
+
+def test_kotlin_c1_mock_vs_c2_runtest_KOTLINRESULT_regression(tmp_path):
+    # Regression (kotlin-result-coroutines): `runTest { }` is a coroutine-test
+    # framework primitive -> C.2 (legit), not C.1. Hand mocks -> C.1. `mockk<…>` must
+    # not also trip the bare `mock(` branch.
+    body = (
+        "@Test fun a() = runTest {\n"            # C2 (framework), not C1
+        "  val svc = mockk<Service>()\n"         # C1
+        "  every { svc.f() } returns 1\n"        # C1 (every {)
+        "  whenever(other.g()).thenReturn(2)\n"  # C1 (whenever()
+        "}\n"
+    )
+    write(tmp_path, "src/test/kotlin/ETest.kt", body)
+    m = score.measure(tmp_path, "kotlin")
+    assert m["C2_mock_framework"] == 1
+    assert m["C1_mock_real"] == 3
+
+
+def test_kotlin_a2_counts_reflection_into_privates(tmp_path):
+    # `internal` access in a same-module test is idiomatic (uncounted); the
+    # countable smell is reflecting into privates.
+    body = (
+        "@Test fun a() {\n"
+        "  val f = obj.javaClass.getDeclaredField(\"secret\")\n"  # getDeclaredField -> A2
+        "  f.isAccessible = true\n"                              # isAccessible = true -> A2
+        "}\n"
+    )
+    write(tmp_path, "src/test/kotlin/FTest.kt", body)
+    assert score.measure(tmp_path, "kotlin")["A2_private_symbol"] == 2
+
+
+# ───────────────────────── Swift profile ────────────────────────────────────
+def test_detect_lang_swift(tmp_path):
+    write(tmp_path, "Tests/FooTests/BarTests.swift", "func testA() {}\n")
+    assert score.detect_lang(tmp_path) == "swift"
+
+
+def test_swift_test_file_detection(tmp_path):
+    # Tests live under a Tests/ dir or in *Tests/*Test/*Spec-named files; Sources/ must not count.
+    write(tmp_path, "Tests/FooTests/BarTests.swift", "func testA() {}\n")  # Tests/ dir
+    write(tmp_path, "Tests/FooTests/Helpers.swift", "let x = 1\n")         # in Tests/ -> counts
+    write(tmp_path, "MyLibSpec.swift", "class S {}\n")                     # *Spec.swift name
+    write(tmp_path, "Sources/Foo/Foo.swift", "public struct Foo {}\n")     # source -> NOT a test
+    assert score.measure(tmp_path, "swift")["files"] == 3
+
+
+def test_swift_test_def_xctest_testing_and_quick(tmp_path):
+    body = (
+        "final class FooTests: XCTestCase {\n"
+        "  func testAlpha() {}\n"           # XCTest -> 1
+        "  func test_beta() {}\n"           # XCTest -> 1
+        "  func helper() {}\n"              # not test-prefixed -> 0
+        "}\n"
+        "@Test func swiftTesting() {}\n"    # Swift Testing -> 1
+        "it(\"quick spec\") {}\n"           # Quick -> 1
+    )
+    write(tmp_path, "Tests/FooTests/FooTests.swift", body)
+    assert score.measure(tmp_path, "swift")["test_count"] == 4
+
+
+def test_swift_param_is_swift_testing_arguments_only(tmp_path):
+    body = (
+        "@Test(arguments: [1, 2, 3])\n"          # parametrized -> param 1
+        "func over(count: Int) {}\n"
+        "@Test func plain() {}\n"                # not parametrized
+        "func testLoop() { for x in xs {} }\n"  # XCTest manual loop -> not param
+    )
+    write(tmp_path, "Tests/FooTests/PTests.swift", body)
+    m = score.measure(tmp_path, "swift")
+    assert m["parametrize"] == 1
+    assert m["test_count"] == 3   # 2 @Test + 1 func test
+
+
+def test_swift_a2_is_uncountable_not_zero(tmp_path):
+    # @testable import of `internal` is idiomatic and `private` is unreachable —
+    # there is no private-access smell to count (mirrors Go A.2 -> None).
+    write(tmp_path, "Tests/FooTests/FooTests.swift", "func testA() {}\n")
+    assert score.measure(tmp_path, "swift")["A2_private_symbol"] is None
+
+
+def test_swift_b1_xctassert_expectequal_expect_SWIFTYJSON_regression(tmp_path):
+    # SwiftyJSON idiom: literal in the SECOND position. Plus Apple StdlibUnittest
+    # `expectEqual` (swift-collections) and Swift Testing `#expect(x == "lit")`.
+    # XCTAssertNotEqual is inequality, not a pinned fixed vector -> must NOT count.
+    body = (
+        "func testA() {\n"
+        "  XCTAssertEqual(json.stringValue, \"Raffi Krikorian\")\n"  # 2nd pos, 15 -> 1
+        "  XCTAssertEqual(\"a-fixed-literal!\", x)\n"                # 1st pos, 16 -> 1
+        "  expectEqual(a.description, \"twelve chars!\")\n"          # expectEqual 2nd, 13 -> 1
+        "  #expect(name == \"a-long-identifier\")\n"                 # Swift Testing -> 1
+        "  XCTAssertEqual(x, \"short\")\n"                           # 5 -> 0
+        "  XCTAssertNotEqual(x, \"a-long-literal-x\")\n"             # NotEqual -> 0
+        "}\n"
+    )
+    write(tmp_path, "Tests/FooTests/BTests.swift", body)
+    assert score.measure(tmp_path, "swift")["B1_fixed_vector"] == 4
+
+
+def test_swift_b1_12char_boundary(tmp_path):
+    body = (
+        "func testA() {\n"
+        "  XCTAssertEqual(x, \"twelvecharss\")\n"   # 12 -> 1
+        "  XCTAssertEqual(x, \"elevenchars\")\n"    # 11 -> 0
+        "}\n"
+    )
+    write(tmp_path, "Tests/FooTests/CTests.swift", body)
+    assert score.measure(tmp_path, "swift")["B1_fixed_vector"] == 1
+
+
+def test_swift_a1_message_partial_not_exact(tmp_path):
+    # Partial matchers on an error's description/message are A.1; exact `==` on the
+    # message is a fixed vector (B.1) and must NOT count as A.1.
+    body = (
+        "func testA() {\n"
+        "  XCTAssertTrue(error.localizedDescription.contains(\"bad\"))\n"      # contains -> A1
+        "  XCTAssertTrue(err.errorDescription!.hasPrefix(\"E_\"))\n"           # hasPrefix -> A1
+        "  XCTAssertEqual(error.localizedDescription, \"the exact message\")\n"  # exact -> NOT A1
+        "}\n"
+    )
+    write(tmp_path, "Tests/FooTests/DTests.swift", body)
+    assert score.measure(tmp_path, "swift")["A1_substring_match"] == 2
+
+
+def test_swift_c1_hand_mock_is_camelcase_anchored(tmp_path):
+    # A hand-written Mock*/Stub*/Fake*/Spy* double (CamelCase) is C.1; a type whose
+    # name merely starts with those letters in lowercase (Mocking) is not.
+    body = (
+        "func testA() {\n"
+        "  let s = MockSession()\n"   # C1
+        "  let t = StubClient(x)\n"   # C1
+        "  let u = Mocking()\n"       # lowercase after Mock -> NOT C1
+        "}\n"
+    )
+    write(tmp_path, "Tests/FooTests/ETests.swift", body)
+    assert score.measure(tmp_path, "swift")["C1_mock_real"] == 2
+
+
+def test_swift_c2_framework_primitives(tmp_path):
+    body = (
+        "func testA() {\n"
+        "  let e = expectation(description: \"async\")\n"  # C2
+        "  wait(for: [e], timeout: 1)\n"                   # C2
+        "}\n"
+    )
+    write(tmp_path, "Tests/FooTests/FTests.swift", body)
+    assert score.measure(tmp_path, "swift")["C2_mock_framework"] == 2
+
+
+# ───────────────────── new profiles: structural contract ────────────────────
+@pytest.mark.parametrize("lang", ["kotlin", "swift"])
+def test_new_profiles_registered_with_required_axes(lang):
+    # The two new profiles must expose every regex-axis key (a pattern, or an
+    # explicit None for n/a) so a refactor can't silently drop one, and stay
+    # flagged heuristic (not empirically validated like Python).
+    prof = score.PROFILES[lang]
+    assert prof["validated"] is False
+    required = {"A1_substring_match", "A2_private_symbol", "A4_recomputed_crypto",
+                "A5_or_joined", "C1_mock_real", "C2_mock_framework", "B1_fixed_vector"}
+    assert required <= set(prof["axes"])
+
+
 # ───────────────────────── Robustness ───────────────────────────────────────
 def test_empty_dir_is_all_zeros_no_crash(tmp_path):
     m = score.measure(tmp_path, "js")
     assert m["files"] == 0 and m["test_count"] == 0
     assert m["D1_loc_per_test"] == 0.0 and m["D2_param_ratio"] == 0.0
     assert m["A1_substring_match"] == 0
+
+
+@pytest.mark.parametrize("lang", ["kotlin", "swift"])
+def test_empty_dir_all_langs_no_crash(tmp_path, lang):
+    m = score.measure(tmp_path, lang)
+    assert m["files"] == 0 and m["test_count"] == 0
+    assert m["D1_loc_per_test"] == 0.0 and m["D2_param_ratio"] == 0.0

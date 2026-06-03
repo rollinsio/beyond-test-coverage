@@ -137,8 +137,9 @@ mechanical ones and leaves the judgement ones to review:
 
 [`scripts/...score.py`](.claude/skills/test-quality/scripts/score.py)
 auto-counts A.1/A.2/A.4/A.5, B.1, C.1/C.2, D.1/D.2 across Python, JS/TS,
-and Go and prints the head-to-head Win/Loss/Tie tally. The rest are
-review-time judgement calls.
+Go, Kotlin (kotlin.test/JUnit5/Kotest), and Swift (XCTest/Swift
+Testing/Quick) and prints the head-to-head Win/Loss/Tie tally. The rest
+are review-time judgement calls.
 
 ## Use it on your own suite
 
@@ -164,8 +165,18 @@ Or score any suite directly, without the skill harness:
 
 ```bash
 python .claude/skills/test-quality/scripts/score.py \
-    --tests path/to/tests --baseline path/to/old_tests --lang python|js|go
+    --tests path/to/tests --baseline path/to/old_tests --lang python|js|go|kotlin|swift
 ```
+
+The Python profile is the empirically-validated one (it drove the experiment
+above). `js`, `go`, `kotlin`, and `swift` apply the same rubric with heuristic,
+framework-appropriate regexes; the Kotlin and Swift profiles were calibrated
+against six real, well-tested suites — `kotlinx.serialization`,
+`kotlinx-datetime`, `kotlin-result`, `swift-argument-parser`, `swift-collections`,
+and `SwiftyJSON` — with every calibration finding pinned as a named regression in
+[`tests/test_score.py`](.claude/skills/test-quality/tests/test_score.py). (The
+nine-library *generation* experiment above is Python/JS/TS/Go; extending it to
+Kotlin/Swift needs their toolchains and is future work — see `CHANGELOG.md`.)
 
 ## Repository layout
 

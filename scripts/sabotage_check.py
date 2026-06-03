@@ -98,6 +98,20 @@ MUTATIONS: list[Mutation] = [
         '\'<span class="badge b-green">yes</span>\' if True',
         [f"{SKILL}/results-dashboard/tests/test_build_dashboard.py::test_build_html_not_better_badge_red"],
     ),
+    Mutation(
+        "score(kotlin): Kotest-leaf block requirement dropped (bare test(\"x\") calls double-count)",
+        f"{SKILL}/test-quality/scripts/score.py",
+        r"[^\n]*?\)\s*\{",
+        r"",
+        [f"{SKILL}/test-quality/tests/test_score.py::test_kotlin_kotest_leaf_requires_block_DATETIME_regression"],
+    ),
+    Mutation(
+        "score(swift): @Test (Swift Testing) dropped from test_def",
+        f"{SKILL}/test-quality/scripts/score.py",
+        r"\bfunc\s+test\w*\s*\(|@Test\b",
+        r"\bfunc\s+test\w*\s*\(",
+        [f"{SKILL}/test-quality/tests/test_score.py::test_swift_test_def_xctest_testing_and_quick"],
+    ),
 ]
 
 

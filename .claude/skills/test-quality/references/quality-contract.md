@@ -175,6 +175,103 @@ effects, nondeterminism, or paid APIs.
 (drive to 0). `mock_framework` = `supertest`/`@testing-library`/`msw`/`nock`
 (legitimate; context only).
 
-> The JS/TS and Go axis counts from `score.py` are **heuristic** (regex
-> approximations), unlike the empirically-validated Python set. Use them to spot
-> trends and the worst offenders, but confirm by reading the tests.
+---
+
+## Kotlin equivalents (kotlin.test · JUnit5 · Kotest · MockK)
+
+Same rules, different syntax. The mapping for the ones that look different:
+
+**1. Error type, not message.**
+❌ `assertTrue(ex.message!!.contains("zlib"))`
+✅ kotlin.test `assertFailsWith<BadPayload> { s.loads(corrupt) }` then assert typed
+fields on the returned exception; JUnit5 `assertThrows<BadPayload> { … }`; Kotest
+`shouldThrow<BadPayload> { … }`. Assert the message text only if the message is a
+documented part of the contract.
+
+**2. Pin a literal; don't recompute.**
+❌ `val expected = Mac.getInstance("HmacSHA1").also{…}.doFinal(v); assertEquals(expected, sign(k,v))`
+✅ `assertEquals("57d5bb55…", sign(k, v))` — kotlin.test puts the **expected first**
+(often a named `expected = …` arg). Use a triple-quoted `"""{"k":"v"}"""` for
+JSON / multiline vectors (the kotlinx.serialization idiom).
+
+**3. Public API only.**
+❌ `obj.javaClass.getDeclaredField("secret").apply { isAccessible = true }`
+✅ Reach the branch through the public / `internal` surface — the test source set
+already sees `internal` for the same module. **Reflecting into privates** is the
+Kotlin tell (the smell A.2 counts).
+
+**4. Behavior, not readback.**
+❌ `val s = Signer(salt = "x"); assertEquals("x", s.salt)`
+✅ `assertNotEquals(Signer(salt="a").sign(v), Signer(salt="b").sign(v))`
+
+**5. No either-or message asserts.**
+❌ `assertTrue(e.message!!.contains("Malformed") || e.message!!.contains("does not match"))`
+✅ Arrange so only one branch is reachable, then assert that one.
+
+**6. Parametrize, don't unroll.**
+✅ JUnit5 `@ParameterizedTest` + `@ValueSource`/`@MethodSource`/`@CsvSource`; Kotest
+`withData(…) { }` (data-driven) or `checkAll { }` (property). Don't copy-paste
+near-identical `@Test fun`s.
+
+**8. Verify assumptions out-of-band.** `kotlin -e "…"`, a `jshell` snippet for JVM
+stdlib, or a throwaway `@Test` you delete. Don't assert library behavior from memory.
+
+**9. Real-I/O over hand mocks.** Prefer ktor `testApplication { }`, OkHttp
+`MockWebServer`, kotlinx-coroutines-test `runTest { }`, JUnit `@TempDir` /
+`TemporaryFolder` over `mockk()` / `Mockito.mock()`. Hand mocks only for true
+external boundaries.
+
+**10. Two mock numbers.** `mock_real` = `mockk`/`spyk`/`every {`/`coEvery {`/
+`Mockito.mock`/`whenever(`/`@Mock` (drive to 0). `mock_framework` = `MockWebServer`/
+`MockEngine`/`testApplication`/`runTest`/`TestDispatcher`/`@TempDir` (legitimate;
+context only — e.g. `runTest` is how you test a `suspend` fun at all).
+
+---
+
+## Swift equivalents (XCTest · Swift Testing · Quick/Nimble)
+
+**1. Error type, not message.**
+❌ `XCTAssertTrue(error.localizedDescription.contains("zlib"))`
+✅ XCTest `XCTAssertThrowsError(try f()) { XCTAssertTrue($0 is BadPayload) }`; Swift
+Testing `#expect(throws: BadPayload.self) { try f() }`. `XCTAssertThrowsError` /
+`#expect(throws:)` with no message-string is the good form; pinning the message text
+is the smell.
+
+**2. Pin a literal; don't recompute.**
+❌ `let expected = HMAC<SHA256>.authenticationCode(for: v, using: k); XCTAssertEqual(sign(k,v), Data(expected))`
+✅ `XCTAssertEqual(sign(k, v), "57d5bb55…")` — XCTest puts the **actual first** and
+the literal **last**; Swift Testing `#expect(out == "57d5bb55…")`.
+
+**3. Public API & `@testable`.** `@testable import` of `internal` is the sanctioned
+way to test in Swift, and `private` is unreachable — so there's **no private-poke
+tell**, and A.2 is `n/a` (as same-package access is in Go). The judgment call is
+whether a test exercises observable behavior or an internal you exposed only for it.
+
+**4. Behavior, not readback.**
+❌ `let s = Signer(salt: "x"); XCTAssertEqual(s.salt, "x")`
+✅ `XCTAssertNotEqual(Signer(salt:"a").sign(v), Signer(salt:"b").sign(v))`
+
+**5. No either-or message asserts.**
+❌ `XCTAssertTrue(msg.contains("Malformed") || msg.contains("does not match"))`
+✅ Arrange so only one branch is reachable, then assert that one.
+
+**6. Parametrize, don't unroll.**
+✅ Swift Testing `@Test(arguments: […])`. XCTest has no native parametrization — a
+`for` loop over a `[case]` array with a per-iteration failure message is the XCTest
+equivalent (it reads as low D.2, which is accurate: a parametrized rewrite wins it).
+
+**8. Verify assumptions out-of-band.** `swift -e "…"` or a scratch test you delete.
+Don't assert library behavior from memory.
+
+**9. Real-I/O over hand mocks.** Swift has no dominant runtime mocker — prefer real
+objects, `URLProtocol` stubs at the network boundary, `FileManager` temp dirs, and
+`XCTestExpectation` / `confirmation` for async, over hand-written `Mock*` / `Stub*`
+doubles.
+
+**10. Two mock numbers.** `mock_real` = hand `Mock*`/`Stub*`/`Fake*`/`Spy*` doubles,
+Cuckoo (drive to 0). `mock_framework` = `XCTestExpectation`/`wait(for:)`/
+`URLProtocol`/`confirmation` (legitimate; context only).
+
+> The JS/TS, Go, Kotlin, and Swift axis counts from `score.py` are **heuristic**
+> (regex approximations), unlike the empirically-validated Python set. Use them to
+> spot trends and the worst offenders, but confirm by reading the tests.

@@ -11,13 +11,19 @@ Multi-language via per-language *profiles*. The Python/pytest profile is the
 one validated in the llm-testgen-bench quality experiment, where prompting a
 model with these axes beat human-written baselines on the auto-countable axes
 in 9 of 9 Python suites (8 of 9 with the model held fixed — the rubric, not the
-model, drove the gain). The JavaScript/TypeScript and
-Go profiles apply the same axes with framework-appropriate regexes; they are
+model, drove the gain). The JavaScript/TypeScript, Go, Kotlin and Swift
+profiles apply the same axes with framework-appropriate regexes; they are
 heuristic and not yet empirically validated to the same degree — treat their
-numbers as a guide, and lean on judgement (read the tests) more heavily.
+numbers as a guide, and lean on judgement (read the tests) more heavily. The
+kotlin/swift regexes were calibrated against six real, well-tested suites
+(kotlinx.serialization, kotlinx-datetime, kotlin-result; swift-argument-parser,
+swift-collections, SwiftyJSON) — see tests/test_score.py for the named regressions.
 
-Supported ``--lang``: python | js | go   (js = Jest / Vitest / Mocha+Chai+Sinon
-/ node:test, .js/.ts/.jsx/.tsx). Omit ``--lang`` to auto-detect from the files.
+Supported ``--lang``: python | js | go | kotlin | swift. Omit ``--lang`` to
+auto-detect from the files.
+  js     = Jest / Vitest / Mocha+Chai+Sinon / node:test  (.js/.ts/.jsx/.tsx)
+  kotlin = kotlin.test / JUnit5 / Kotest                 (.kt)
+  swift  = XCTest / Swift Testing / Quick+Nimble          (.swift)
 
 Auto-scored axes (direction in parens):
   A.1 substring-match assertions on error messages   (lower better)
@@ -160,6 +166,125 @@ PROFILES = {
                 r"want\s*:?=\s*\"[^\"\n]{12,}\"|==\s*\"[^\"\n]{12,}\"|\[\]byte\(\s*\""
                 r"|(?:!=|==)\s*(?:tc\.|tt\.|c\.)?(?:want|wantErr|wantBody|wantStatus|expected|exp|output|out|result|wanted)\b"
                 r"|\b(?:want|wantBody|expected|exp|output|out|wanted)\s*:\s*(?:\"[^\"\n]{8,}\"|`|\[\]byte\()"
+            ),
+        },
+    },
+    # Kotlin (kotlin.test / JUnit5 / Kotest). Best-effort, heuristic.
+    "kotlin": {
+        "exts": [".kt"],
+        # Test source sets: a path segment that is `test` or ends in `Test`
+        # (commonTest, jvmTest, androidTest, …), or a *Test/*Tests/*Spec/*IT file.
+        "test_file": r"(?:^|[/\\])[A-Za-z]*[Tt]est[/\\]|(?:Test|Tests|Spec|IT)\.kt$",
+        # kotlin.test / JUnit annotations, plus Kotest leaf-test DSL calls. `@Test\b`
+        # does NOT match `@TestFactory`/`@TestInstance` (no word boundary), so those
+        # config annotations don't inflate the count; @TestFactory is added back.
+        # The Kotest branch requires a trailing block `) {` — a real leaf test always
+        # has a body, so a bare local helper call like `test("Z")` is NOT counted.
+        "test_def": (
+            r"@Test\b|@ParameterizedTest\b|@RepeatedTest\b|@TestFactory\b"
+            r"|\b(?:test|it|should|xtest|xit)\s*\(\s*[\"'][^\n]*?\)\s*\{"
+        ),
+        # JUnit @ParameterizedTest, Kotest data-driven (withData) / property testing.
+        "param": r"@ParameterizedTest\b|\bwithData\b|\bforAll\b|\bcheckAll\b",
+        "validated": False,
+        "axes": {
+            # PARTIAL message matchers only. Exact `==`-literal on a message is a
+            # fixed vector (B.1), mirroring the validated Python/JS split. AssertJ
+            # hasMessageContaining, a `.message` fed into contains/startsWith/…, or
+            # Kotest `.message shouldContain`.
+            "A1_substring_match": (
+                r"\.hasMessageContaining\(|\.hasMessageMatching\(|\.messageContains\("
+                r"|\.message\b[^\n]{0,60}?\b(?:contains|startsWith|endsWith|matches"
+                r"|shouldContain|shouldStartWith|shouldEndWith|shouldMatch)\b"
+                r"|\bassertContains\([^\n)]*\.message\b"
+            ),
+            # Kotlin test code sees `internal` (same module) idiomatically and cannot
+            # reach `private` at all — so the real smell is reflecting into privates.
+            "A2_private_symbol": (
+                r"\.isAccessible\s*=\s*true|\bgetDeclaredField\(|\bgetDeclaredMethod\("
+                r"|\bsetAccessible\(|::class\.java\.getDeclared\w+\("
+            ),
+            "A4_recomputed_crypto": (
+                r"\bMessageDigest\.getInstance\(|\bMac\.getInstance\(|\bCipher\.getInstance\("
+                r"|\bSignature\.getInstance\(|\bKeyFactory\.getInstance\("
+                r"|expected\s*=?\s*[^\n]*(?:MessageDigest|Mac\.|\.digest\(|Base64\.(?:getEncoder|getDecoder))"
+            ),
+            "A5_or_joined": r"\|\|[^\n]*\.message\b|\.message\b[^\n]*\|\|",
+            # MockK / Mockito / mockito-kotlin hand mocks of the unit. `mock(`/`spy(`
+            # are anchored to a call/type-arg form so plain words don't match.
+            "C1_mock_real": (
+                r"\bmockk\s*[(<]|\bspyk\s*\(|\bevery\s*\{|\bcoEvery\s*\{"
+                r"|\bMockito\.|\bmock\s*[(<]|\bspy\s*\(|\bwhenever\s*\(|@Mock\b|@MockK\b|@SpyK\b"
+            ),
+            # Legitimate real-I/O / time / coroutine-test primitives (context only).
+            "C2_mock_framework": (
+                r"\bMockWebServer\b|\bMockEngine\b|\btestApplication\b|\brunTest\b"
+                r"|\bTestScope\b|\b(?:Standard|Unconfined)TestDispatcher\b"
+                r"|@TempDir\b|\bTemporaryFolder\b|\bTestcontainers?\b"
+            ),
+            # Exact-literal equality against a 12+ char literal, a triple-quoted block
+            # (JSON/multiline fixtures — the kotlinx.serialization idiom), or a hex
+            # literal. kotlin.test puts the expected first (often a named `expected =`
+            # arg); AssertJ `.isEqualTo` / Kotest `shouldBe` put it last.
+            "B1_fixed_vector": (
+                r"assertEquals\(\s*(?:expected\s*=\s*)?\"\"\""
+                r"|assertEquals\(\s*(?:expected\s*=\s*)?[\"'][^\"'\n]{12,}[\"']"
+                r"|assertEquals\([^,\n]+,\s*[\"'][^\"'\n]{12,}[\"']"
+                r"|\.isEqualTo\(\s*(?:\"\"\"|[\"'][^\"'\n]{12,}[\"'])"
+                r"|\bshouldBe\s+(?:\"\"\"|[\"'][^\"'\n]{12,}[\"'])"
+                r"|assertEquals\(\s*(?:expected\s*=\s*)?0x[0-9a-fA-F]{8,}"
+            ),
+        },
+    },
+    # Swift (XCTest / Swift Testing / Quick+Nimble). Best-effort, heuristic.
+    "swift": {
+        "exts": [".swift"],
+        "test_file": r"(?:^|[/\\])[Tt]ests?[/\\]|(?:Tests?|Spec)\.swift$",
+        # XCTest `func test…`, Swift Testing `@Test`, Quick `it("…")`. A Swift Testing
+        # test is rarely named test*, so `@Test`/`func test` don't double-count.
+        "test_def": r"\bfunc\s+test\w*\s*\(|@Test\b|\bit\s*\(\s*[\"']",
+        # Swift Testing parametrized `@Test(arguments:)`; XCTest/Quick have none native.
+        "param": r"@Test\s*\([^)\n]*\barguments\s*:",
+        "validated": False,
+        "axes": {
+            # PARTIAL message matchers (exact `==` on a message → B.1). A `.message` /
+            # `.localizedDescription` / `.errorDescription` fed into contains/hasPrefix/
+            # hasSuffix. (Exact `XCTAssertEqual(e.localizedDescription, "…")` is B.1.)
+            "A1_substring_match": (
+                r"\.(?:localizedDescription|errorDescription|failureReason|message|description)\b"
+                r"[^\n]{0,50}?\.(?:contains|hasPrefix|hasSuffix)\("
+            ),
+            # `@testable import` of `internal` is THE idiomatic way to test in Swift,
+            # and `private` is unreachable — no countable private-access smell (cf. Go).
+            "A2_private_symbol": None,
+            "A4_recomputed_crypto": (
+                r"\bSHA256\.hash\(|\bSHA512\.hash\(|\bSHA384\.hash\(|\bHMAC<"
+                r"|\bInsecure\.(?:MD5|SHA1)\b|\bSymmetricKey\(|\bCC_SHA\d|\bCCHmac\b"
+                r"|expected\s*=\s*[^\n]*(?:SHA256|HMAC|\.hash\(|Data\(base64)"
+            ),
+            "A5_or_joined": (
+                r"\|\|[^\n]*\.(?:localizedDescription|errorDescription|message)\b"
+                r"|\.(?:localizedDescription|errorDescription|message)\b[^\n]*\|\|"
+            ),
+            # Swift has no dominant runtime mocker; the smell is a hand-written
+            # Mock*/Stub*/Fake*/Spy* double (CamelCase-anchored) or Cuckoo.
+            "C1_mock_real": r"\b(?:Mock|Stub|Fake|Spy)[A-Z]\w*\s*\(|\bCuckoo\b",
+            # Legitimate real-I/O / async-wait / URL-intercept primitives (context only).
+            "C2_mock_framework": (
+                r"\bXCTestExpectation\b|\bexpectation\(\s*description:|\bwait\(for:"
+                r"|\bconfirmation\(|\bURLProtocol\b|withTemporaryDirectory"
+                r"|FileManager\.default\.(?:createFile|createDirectory|temporaryDirectory)"
+            ),
+            # Exact-literal equality against a 12+ char literal or a hex literal:
+            # XCTest `XCTAssertEqual(actual, "literal")` (literal usually last), Apple's
+            # StdlibUnittest `expectEqual` helper, Swift Testing `#expect(x == "lit")`,
+            # and Nimble `.to(equal("lit"))`.
+            "B1_fixed_vector": (
+                r"(?:XCTAssertEqual|expectEqual)\(\s*[\"'][^\"'\n]{12,}[\"']"
+                r"|(?:XCTAssertEqual|expectEqual)\([^,\n]+,\s*[\"'][^\"'\n]{12,}[\"']"
+                r"|#(?:expect|require)\([^\n]*==\s*[\"'][^\"'\n]{12,}[\"']"
+                r"|\.to\(\s*equal\(\s*[\"'][^\"'\n]{12,}[\"']"
+                r"|(?:XCTAssertEqual|expectEqual)\([^\n]*,\s*0x[0-9a-fA-F]{8,}"
             ),
         },
     },

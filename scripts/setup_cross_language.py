@@ -96,11 +96,89 @@ REPOS = {
             "- Table-driven `t.Run` subtests over fixed token strings.\n"
             "- `errors.Is` / `errors.As` for the typed error sentinels — not message substrings.",
     },
+    # ── Kotlin + Swift targets ────────────────────────────────────────────────
+    # Configured for parity with the JS/Go targets; the generation arms have NOT
+    # been run yet (they need the Kotlin/Swift toolchains). run_cmd/delete_cmd are
+    # the conventional commands — confirm against each repo's build before a run.
+    # main() skips any target whose <repo>/base clone is absent, so these stay
+    # inert until you clone them (see .gitignore for the canonical clone dirs).
+    "kotlinx-serialization": {
+        "lang": "kotlin", "pkg_mgr": "gradle", "tests_dir": ".",
+        "repo_url": "https://github.com/Kotlin/kotlinx.serialization",
+        "source_desc": "the kotlinx.serialization library — JSON/CBOR/ProtoBuf "
+                       "encoding, schema descriptors, polymorphism (core/, formats/)",
+        "run_cmd": "./gradlew jvmTest",
+        "delete_cmd": "git rm -r -q $(git ls-files '*/commonTest/*' '*/jvmTest/*' '*Test.kt')",
+        "framework_primitives":
+            "- kotlin.test `assertEquals(expected, actual)` — expected FIRST; "
+            "triple-quoted `\"\"\"{…}\"\"\"` literals for JSON/CBOR vectors.\n"
+            "- `assertFailsWith<T> { }` for typed errors; some Kotest `should(\"…\") { }`. "
+            "Pure logic — no mocks.",
+    },
+    "kotlinx-datetime": {
+        "lang": "kotlin", "pkg_mgr": "gradle", "tests_dir": ".",
+        "repo_url": "https://github.com/Kotlin/kotlinx-datetime",
+        "source_desc": "the kotlinx-datetime library — Instant / LocalDate(Time) / "
+                       "TimeZone / UtcOffset arithmetic & ISO parsing (core/)",
+        "run_cmd": "./gradlew jvmTest",
+        "delete_cmd": "git rm -r -q $(git ls-files '*/common/test/*' '*/commonTest/*' '*Test.kt')",
+        "framework_primitives":
+            "- kotlin.test `@Test` + `assertEquals`; boundary-heavy date arithmetic.\n"
+            "- Pin ISO-8601 string vectors (`\"PT0.999999999S\"`); don't recompute via the API.",
+    },
+    "kotlin-result": {
+        "lang": "kotlin", "pkg_mgr": "gradle", "tests_dir": ".",
+        "repo_url": "https://github.com/michaelbull/kotlin-result",
+        "source_desc": "the kotlin-result library — Result<V, E> monad: "
+                       "map/and/or/unwrap/binding (kotlin-result/, kotlin-result-coroutines/)",
+        "run_cmd": "./gradlew jvmTest",
+        "delete_cmd": "git rm -r -q $(git ls-files '*/commonTest/*')",
+        "framework_primitives":
+            "- kotlin.test `@Test` in nested grouping classes; `assertFailsWith<T> { }`.\n"
+            "- kotlinx-coroutines-test `runTest { }` is how a `suspend` fun is tested (C.2, not a mock).",
+    },
+    "swift-argument-parser": {
+        "lang": "swift", "pkg_mgr": "swift", "tests_dir": ".",
+        "repo_url": "https://github.com/apple/swift-argument-parser",
+        "source_desc": "the swift-argument-parser library — declarative CLI parsing, "
+                       "validation, help/usage generation (Sources/ArgumentParser)",
+        "run_cmd": "swift test",
+        "delete_cmd": "git rm -r -q $(git ls-files 'Tests/*')",
+        "framework_primitives":
+            "- XCTest `XCTAssertThrowsError(try …) { … }` for typed errors.\n"
+            "- The `AssertErrorMessage(_, _, \"full message\")` helper pins exact error text "
+            "(a documented contract here) — prefer the error type otherwise.",
+    },
+    "swift-collections": {
+        "lang": "swift", "pkg_mgr": "swift", "tests_dir": ".",
+        "repo_url": "https://github.com/apple/swift-collections",
+        "source_desc": "the swift-collections package — Deque, OrderedSet/Dictionary, "
+                       "BitSet/BitArray, TreeDictionary/Set, Heap (Sources/)",
+        "run_cmd": "swift test",
+        "delete_cmd": "git rm -r -q $(git ls-files 'Tests/*')",
+        "framework_primitives":
+            "- The StdlibUnittest-style `expectEqual` / `expectEqualElements` harness "
+            "(CollectionsTestSupport) — the project's XCTest wrappers.\n"
+            "- Swift Testing `@Test` / `#expect` (and `@Test(arguments:)`) in the newer suites.",
+    },
+    "SwiftyJSON": {
+        "lang": "swift", "pkg_mgr": "swift", "tests_dir": ".",
+        "repo_url": "https://github.com/SwiftyJSON/SwiftyJSON",
+        "source_desc": "the SwiftyJSON library — ergonomic JSON access/mutation "
+                       "over Any, typed getters, literal conformances (Source/SwiftyJSON)",
+        "run_cmd": "swift test",
+        "delete_cmd": "git rm -r -q $(git ls-files 'Tests/*')",
+        "framework_primitives":
+            "- XCTest `XCTAssertEqual(actual, \"literal\")` — literal LAST.\n"
+            "- Pin parsed values as fixed literals; compare JSON via `XCTAssertEqual(JSON(a), JSON(b))`.",
+    },
 }
 
 VERIFY_CMD = {
     "js": "`node -e '...'` for a quick out-of-band check",
     "go": "a scratch `package main` run with `go run`, or `go test -run` a throwaway",
+    "kotlin": "`kotlin -e '...'`, a `jshell` snippet for JVM stdlib, or a throwaway `@Test` you delete",
+    "swift": "`swift -e '...'` or a scratch test you delete",
 }
 
 
@@ -129,6 +207,13 @@ def build_prompt(repo: str, policy: str, parts: dict[str, str], label: str) -> s
         env_note = ("This is a pnpm monorepo. `node_modules/` has been relinked "
                     "from the shared pnpm store (no download). Run vitest from the "
                     "worktree root; the workspace config is picked up automatically.")
+    elif meta["pkg_mgr"] == "gradle":
+        env_note = ("Gradle resolves dependencies from its shared cache (network on "
+                    "first run); nothing is pre-linked. Run `./gradlew` from the "
+                    "worktree root.")
+    elif meta["pkg_mgr"] == "swift":
+        env_note = ("SwiftPM resolves and builds from the worktree on first "
+                    "`swift test`; the package cache is shared. Nothing is pre-linked.")
     else:
         env_note = ("Go module cache is shared globally; `go test` resolves "
                     "offline. There is nothing to install.")
@@ -176,7 +261,8 @@ def setup_deps(repo: str, wt: Path) -> None:
             print(f"  pnpm install --prefer-offline ({repo}/{wt.name}) ...")
             subprocess.run(["pnpm", "install", "--prefer-offline", "--silent"],
                            cwd=str(wt), check=True)
-    # go: nothing — shared module cache.
+    # go / gradle / swift: nothing to pre-link — each resolves from its own
+    # shared cache (Go module cache, Gradle cache, SwiftPM cache) on first run.
 
 
 def main() -> int:
@@ -185,7 +271,7 @@ def main() -> int:
                     help="Only (re)write prompts; worktrees + deps must already exist.")
     ap.add_argument("--label", default="r3", help="wt-<label>-<policy> (default r3).")
     ap.add_argument("--repos", nargs="*", default=list(REPOS),
-                    help="Subset of repos (default: all six).")
+                    help="Subset of repos (default: all configured targets).")
     args = ap.parse_args()
 
     parts = {name: (PROMPT_DIR / f"{name}.md").read_text() for name in
@@ -196,6 +282,11 @@ def main() -> int:
     for repo in args.repos:
         if repo not in REPOS:
             print(f"  unknown repo: {repo}", file=sys.stderr)
+            continue
+        if not (ROOT / repo / "base").exists():
+            url = REPOS[repo].get("repo_url", "<repo>")
+            print(f"  SKIP (clone not on disk): clone {url} into "
+                  f"{ROOT / repo / 'base'} first")
             continue
         for policy in POLICIES:
             wt = ROOT / repo / f"wt-{args.label}-{policy}"

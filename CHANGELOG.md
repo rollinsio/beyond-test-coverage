@@ -28,6 +28,36 @@ Finding 17 (B.1).
   fixed-vector-dense oneshot suites read B.1 ≈ 3–4). NOT applied mid-cross-language
   to avoid moving the frozen instrument post-generation.
 
+### Added — scorer (languages: Kotlin + Swift)
+- **`kotlin` and `swift` profiles in `score.py`**, applying the same axes as the
+  other languages with framework-appropriate regexes:
+  - `kotlin` — kotlin.test / JUnit5 / Kotest (`.kt`). Notable calibration choices:
+    `@Test`-family annotations drive `test_def` (the `@Test\b` boundary excludes
+    `@TestInstance`-style config); Kotest leaves count only when written
+    `name("…") { … }` with a body (so a bare local-helper call like `test("Z")`
+    does not inflate the count — the kotlinx-datetime regression); A.1 is partial
+    message-matchers only (an `assertTrue(x.message is T)` type-check is excluded —
+    the kotlinx.serialization regression); B.1 counts triple-quoted `"""…"""`
+    vectors and the `expected = …` named arg; A.2 counts reflection into privates.
+  - `swift` — XCTest / Swift Testing / Quick+Nimble (`.swift`). `test_def` spans
+    `func test…`, `@Test`, and `it("…")`; `param` is Swift Testing `@Test(arguments:)`;
+    B.1 also counts Apple's StdlibUnittest `expectEqual` helper and `#expect(x == "…")`;
+    A.2 is `n/a` (`@testable import` of `internal` is idiomatic, `private` unreachable —
+    as in Go).
+- **Calibrated against six real, well-tested suites** — kotlinx.serialization,
+  kotlinx-datetime, kotlin-result; swift-argument-parser, swift-collections,
+  SwiftyJSON. Every calibration finding is a named regression in
+  `tests/test_score.py` (24 new cases); baselines recorded in
+  `reports/kotlin-swift-baselines.md`. Tier: **heuristic** (not the empirically-
+  validated Python tier).
+- **Cross-language harness extended** with the six targets in
+  `setup_cross_language.py` and `score_cross_language.py` (+`.gitignore` clone
+  dirs). Both scripts skip any target whose `<repo>/base` clone is absent, so the
+  committed JS/Go run is undisturbed. The Kotlin/Swift **generation arms have NOT
+  been run** — that needs the Kotlin (Gradle) and Swift toolchains and a
+  regeneration pass; `run_cmd`/`delete_cmd` are the conventional commands and should
+  be confirmed against each repo's build before the first run.
+
 ---
 
 ## [Cross-language (JS/TS + Go)] — 2026-05-29 (executed)
