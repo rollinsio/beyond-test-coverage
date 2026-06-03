@@ -174,9 +174,17 @@ framework-appropriate regexes; the Kotlin and Swift profiles were calibrated
 against six real, well-tested suites — `kotlinx.serialization`,
 `kotlinx-datetime`, `kotlin-result`, `swift-argument-parser`, `swift-collections`,
 and `SwiftyJSON` — with every calibration finding pinned as a named regression in
-[`tests/test_score.py`](.claude/skills/test-quality/tests/test_score.py). (The
-nine-library *generation* experiment above is Python/JS/TS/Go; extending it to
-Kotlin/Swift needs their toolchains and is future work — see `CHANGELOG.md`.)
+[`tests/test_score.py`](.claude/skills/test-quality/tests/test_score.py).
+
+Beyond calibration, **two Kotlin/Swift generation arms were executed** the same
+way as the nine-library experiment — delete the human suite, regenerate from
+source against the scorecard, verify green with the real toolchain, score vs the
+baseline. Both win: **kotlin-result** (`./gradlew :kotlin-result:jvmTest`, 63
+tests) went 2/0/6 and **SwiftyJSON** (`swift test`, Swift Testing, 20 tests) went
+3/0/4 — see [`results-kotlin-swift-scorecard.md`](results-kotlin-swift-scorecard.md)
+and [`reports/kotlin-swift-generation.md`](reports/kotlin-swift-generation.md).
+The remaining four targets (the larger kotlinx / apple-swift repos) are
+configured but not yet run.
 
 ## Repository layout
 

@@ -1,0 +1,152 @@
+{
+  "baselines": {
+    "kotlin-result": {
+      "lang": "kotlin",
+      "A1_substring_match": 0,
+      "A2_private_symbol": 0,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 0,
+      "B1_fixed_vector": 0,
+      "files": 13,
+      "test_count": 288,
+      "test_loc": 4307,
+      "parametrize": 0,
+      "D1_loc_per_test": 14.95,
+      "D2_param_ratio": 0.0
+    },
+    "SwiftyJSON": {
+      "lang": "swift",
+      "A1_substring_match": 0,
+      "A2_private_symbol": null,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 0,
+      "B1_fixed_vector": 24,
+      "files": 18,
+      "test_count": 149,
+      "test_loc": 2782,
+      "parametrize": 0,
+      "D1_loc_per_test": 18.67,
+      "D2_param_ratio": 0.0
+    }
+  },
+  "arms": [
+    {
+      "repo": "kotlin-result",
+      "policy": "regen",
+      "present": true,
+      "lang": "kotlin",
+      "green_tests": 63,
+      "run_cmd": "./gradlew :kotlin-result:jvmTest",
+      "test_count": 63,
+      "test_loc": 422,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 50,
+          "base": 0,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 6.7,
+          "base": 14.95,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.0,
+          "verdict": "TIE"
+        }
+      },
+      "wins": 2,
+      "losses": 0,
+      "ties": 6,
+      "better": true
+    },
+    {
+      "repo": "SwiftyJSON",
+      "policy": "regen",
+      "present": true,
+      "lang": "swift",
+      "green_tests": 20,
+      "run_cmd": "swift test",
+      "test_count": 20,
+      "test_loc": 210,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 28,
+          "base": 24,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 10.5,
+          "base": 18.67,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.1,
+          "base": 0.0,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 3,
+      "losses": 0,
+      "ties": 4,
+      "better": true
+    }
+  ]
+}

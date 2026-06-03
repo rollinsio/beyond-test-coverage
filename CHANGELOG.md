@@ -53,10 +53,20 @@ Finding 17 (B.1).
 - **Cross-language harness extended** with the six targets in
   `setup_cross_language.py` and `score_cross_language.py` (+`.gitignore` clone
   dirs). Both scripts skip any target whose `<repo>/base` clone is absent, so the
-  committed JS/Go run is undisturbed. The Kotlin/Swift **generation arms have NOT
-  been run** — that needs the Kotlin (Gradle) and Swift toolchains and a
-  regeneration pass; `run_cmd`/`delete_cmd` are the conventional commands and should
-  be confirmed against each repo's build before the first run.
+  committed JS/Go run is undisturbed.
+
+### Executed — Kotlin + Swift generation (2 pilot arms)
+- Ran the delete-and-regenerate loop on **kotlin-result** (JDK 17 + Gradle
+  wrapper, `./gradlew :kotlin-result:jvmTest`) and **SwiftyJSON** (Swift 6.1.2,
+  `swift test`). Both regenerated suites are **green** and **beat the human
+  baseline** on the countable axes:
+  - kotlin-result: 63 tests, **2 wins / 0 losses / 6 ties** (B.1 50 v 0, D.1 6.7 v 14.95).
+  - SwiftyJSON: 20 tests (Swift Testing, parametrized), **3 wins / 0 losses / 4 ties**
+    (B.1 28 v 24, D.1 10.5 v 18.67, D.2 0.1 v 0).
+- Scores in `results-kotlin-swift-scorecard.{json,md}`; narrative in
+  `reports/kotlin-swift-generation.md`; the regenerated test code is preserved
+  under `reports/generated-suites/`. The remaining four targets (the larger
+  kotlinx/swift-apple repos) are configured but not yet run.
 
 ---
 
