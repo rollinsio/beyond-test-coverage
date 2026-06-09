@@ -13,13 +13,15 @@ improvement round.
 
 `scripts/score.py` computes the auto-countable axes for you, across languages:
 ```bash
-python scripts/score.py --tests <tests_dir> [--baseline <prior_tests_dir>] [--lang python|js|go]
+python scripts/score.py --tests <tests_dir> [--baseline <prior_tests_dir>] [--lang python|js|go|kotlin|swift]
 ```
 `--lang` auto-detects from the files if omitted. `js` covers Jest / Vitest /
-Mocha+Chai+Sinon / node:test (`.js/.ts/.jsx/.tsx`). **The Python profile is the
-empirically-validated one; the `js` and `go` axis regexes are heuristic** — use
-them to surface trends and worst offenders, then confirm by reading. Axes shown
-as `n/a` aren't reliably countable for that language; assess them by reading.
+Mocha+Chai+Sinon / node:test (`.js/.ts/.jsx/.tsx`); `kotlin` covers kotlin.test /
+JUnit5 / Kotest (`.kt`); `swift` covers XCTest / Swift Testing / Quick+Nimble
+(`.swift`). **The Python profile is the empirically-validated one; the `js`,
+`go`, `kotlin`, and `swift` axis regexes are heuristic** — use them to surface
+trends and worst offenders, then confirm by reading. Axes shown as `n/a` aren't
+reliably countable for that language; assess them by reading.
 
 ## The axes
 

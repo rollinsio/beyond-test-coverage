@@ -28,6 +28,61 @@ Finding 17 (B.1).
   fixed-vector-dense oneshot suites read B.1 ≈ 3–4). NOT applied mid-cross-language
   to avoid moving the frozen instrument post-generation.
 
+### Added — scorer (languages: Kotlin + Swift)
+- **`kotlin` and `swift` profiles in `score.py`**, applying the same axes as the
+  other languages with framework-appropriate regexes:
+  - `kotlin` — kotlin.test / JUnit5 / Kotest (`.kt`). Notable calibration choices:
+    `@Test`-family annotations drive `test_def` (the `@Test\b` boundary excludes
+    `@TestInstance`-style config); Kotest leaves count only when written
+    `name("…") { … }` with a body (so a bare local-helper call like `test("Z")`
+    does not inflate the count — the kotlinx-datetime regression); A.1 is partial
+    message-matchers only (an `assertTrue(x.message is T)` type-check is excluded —
+    the kotlinx.serialization regression); B.1 counts triple-quoted `"""…"""`
+    vectors and the `expected = …` named arg; A.2 counts reflection into privates.
+  - `swift` — XCTest / Swift Testing / Quick+Nimble (`.swift`). `test_def` spans
+    `func test…`, `@Test`, and `it("…")`; `param` is Swift Testing `@Test(arguments:)`;
+    B.1 also counts Apple's StdlibUnittest `expectEqual` helper and `#expect(x == "…")`;
+    A.2 is `n/a` (`@testable import` of `internal` is idiomatic, `private` unreachable —
+    as in Go).
+- **Calibrated against six real, well-tested suites** — kotlinx.serialization,
+  kotlinx-datetime, kotlin-result; swift-argument-parser, swift-collections,
+  SwiftyJSON. Every calibration finding is a named regression in
+  `tests/test_score.py` (24 new cases); baselines recorded in
+  `reports/kotlin-swift-baselines.md`. Tier: **heuristic** (not the empirically-
+  validated Python tier).
+- **Cross-language harness extended** with the six targets in
+  `setup_cross_language.py` and `score_cross_language.py` (+`.gitignore` clone
+  dirs). Both scripts skip any target whose `<repo>/base` clone is absent, so the
+  committed JS/Go run is undisturbed.
+
+### Executed — Kotlin + Swift generation matrix (full 6×3 = 18 arms)
+- Ran the delete-and-regenerate loop across **all six repos × three iteration
+  policies** (oneshot / iter2 / iter20), built/run with the real toolchains
+  (JDK 17 + each repo's Gradle wrapper; Apple Swift 6.1.2). The two largest repos
+  (kotlinx.serialization → JSON module; swift-collections → OrderedCollections)
+  are scoped to a coherent core module; baseline is each repo's whole human suite.
+- **Result: 18/18 arms beat the human baseline** on the countable axes;
+  **15/18 green**. The three reds are all *oneshot* and are **compile** failures
+  (a `private` type in `@Test(arguments:)`; mutating a `let`; a `JsonObject`/`Map`
+  type-inference site) left unrepaired per the one-pass policy — iter2 fixes each
+  in one round. This reproduces the Python/JS "one pass wins the quality axes but
+  ships failures; iteration makes it green" finding in Kotlin and Swift.
+  Iteration also deepens quality (e.g. swift-collections B.1 3→31→45 across
+  oneshot→iter2→iter20, flipping the B.1 loss to a win).
+- Integrity: every W/L/T was **re-scored by the orchestrator independently of the
+  generating agent**, and every green count **re-run from the real toolchain**;
+  one apparent green (a stale verification-probe XML) was caught and corrected to
+  red on re-run.
+- Scores in `results-kotlin-swift-scorecard.{json,md}` (the `{baselines, arms}`
+  shape, via `scripts/score_kotlin_swift_matrix.py` over
+  `bench-clones/.matrix-manifest.json`); narrative in
+  `reports/kotlin-swift-generation.md`; the decisive (iter20) suite for each repo
+  is preserved under `reports/generated-suites/`.
+- Caveat: the Kotlin/Swift profiles are heuristic. The recurring B.1 loss on the
+  large repos is the absolute-count-vs-suite-size artifact this CHANGELOG's
+  `[Unreleased]` B.1-as-ratio proposal targets — the scoped arms are compared
+  against a much larger whole-repo baseline.
+
 ---
 
 ## [Cross-language (JS/TS + Go)] — 2026-05-29 (executed)

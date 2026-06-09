@@ -21,7 +21,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCORE_PY = ROOT / ".claude" / "skills" / "test-quality" / "scripts" / "score.py"
 
-# repo -> (lang, tests_dir). "." = whole module (Go colocated _test.go).
+# repo -> (lang, tests_dir). "." = whole module (the scorer's per-language
+# test_file regex filters to test files, so "." is safe for colocated layouts —
+# Go _test.go, Kotlin test source sets, Swift Tests/).
 REPOS = {
     "express": ("js", "test"),
     "jsonwebtoken": ("js", "test"),
@@ -29,6 +31,15 @@ REPOS = {
     "chi": ("go", "."),
     "gjson": ("go", "."),
     "golang-jwt": ("go", "."),
+    # Kotlin + Swift validation targets. Scored once their clone is on disk at
+    # <repo>/base; un-cloned repos are skipped (see the base.exists() guard in
+    # main), so adding them here does not disturb the committed JS/Go run.
+    "kotlinx-serialization": ("kotlin", "."),
+    "kotlinx-datetime": ("kotlin", "."),
+    "kotlin-result": ("kotlin", "."),
+    "swift-argument-parser": ("swift", "."),
+    "swift-collections": ("swift", "."),
+    "SwiftyJSON": ("swift", "."),
 }
 POLICIES = ("oneshot", "iter2", "iter20")
 AXES = ["A1_substring_match", "A2_private_symbol", "A4_recomputed_crypto",
@@ -53,12 +64,17 @@ def main() -> int:
 
     baselines = {}
     for repo, (lang, td) in REPOS.items():
-        m = score.measure(tpath(ROOT / repo / "base", td), lang)
+        base = ROOT / repo / "base"
+        if not base.exists():
+            continue   # clone not on disk (e.g. a kotlin/swift target not set up) — skip
+        m = score.measure(tpath(base, td), lang)
         baselines[repo] = {"lang": lang, **m}
 
     arms = []
     for repo, (lang, td) in REPOS.items():
-        b = baselines[repo]
+        b = baselines.get(repo)
+        if b is None:
+            continue   # baseline absent (un-cloned repo) — nothing to score
         for pol in POLICIES:
             wt = ROOT / repo / f"wt-r3-{pol}"
             tdir = tpath(wt, td)

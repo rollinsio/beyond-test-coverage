@@ -1,0 +1,1170 @@
+{
+  "baselines": {
+    "kotlinx-serialization": {
+      "lang": "kotlin",
+      "scope": "JSON format module (generated into :kotlinx-serialization-json-tests, JUnit5 wired into that module's build.gradle.kts as the test harness); whole human suite (1618 tests) is the baseline",
+      "A1_substring_match": 21,
+      "A2_private_symbol": 1,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 1,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 0,
+      "B1_fixed_vector": 211,
+      "files": 337,
+      "test_count": 1618,
+      "test_loc": 34861,
+      "parametrize": 49,
+      "D1_loc_per_test": 21.55,
+      "D2_param_ratio": 0.03
+    },
+    "kotlinx-datetime": {
+      "lang": "kotlin",
+      "scope": "core date/time value types (LocalDate/Time/DateTime, periods, units, UtcOffset); whole human suite (687 tests) is the baseline. Run skips the JPMS module-info task (needs a JDK 11 toolchain this box lacks; unrelated to tests)",
+      "A1_substring_match": 3,
+      "A2_private_symbol": 0,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 0,
+      "B1_fixed_vector": 127,
+      "files": 95,
+      "test_count": 687,
+      "test_loc": 14452,
+      "parametrize": 0,
+      "D1_loc_per_test": 21.04,
+      "D2_param_ratio": 0.0
+    },
+    "kotlin-result": {
+      "lang": "kotlin",
+      "scope": "core kotlin-result module public Result<V,E> API; whole human suite (387 tests) is the baseline",
+      "A1_substring_match": 0,
+      "A2_private_symbol": 0,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 120,
+      "B1_fixed_vector": 0,
+      "files": 20,
+      "test_count": 387,
+      "test_loc": 6407,
+      "parametrize": 0,
+      "D1_loc_per_test": 16.56,
+      "D2_param_ratio": 0.0
+    },
+    "swift-argument-parser": {
+      "lang": "swift",
+      "scope": "ArgumentParserEndToEndTests target \u2014 end-to-end parsing via the public ParsableCommand API (Swift Testing); whole human suite (565 tests) is the baseline",
+      "A1_substring_match": 0,
+      "A2_private_symbol": null,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 6,
+      "B1_fixed_vector": 14,
+      "files": 62,
+      "test_count": 565,
+      "test_loc": 14449,
+      "parametrize": 0,
+      "D1_loc_per_test": 25.57,
+      "D2_param_ratio": 0.0
+    },
+    "swift-collections": {
+      "lang": "swift",
+      "scope": "OrderedCollections module (OrderedSet + OrderedDictionary value semantics, Swift Testing); whole human suite (1095 tests) is the baseline",
+      "A1_substring_match": 0,
+      "A2_private_symbol": null,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 0,
+      "B1_fixed_vector": 36,
+      "files": 109,
+      "test_count": 1095,
+      "test_loc": 34498,
+      "parametrize": 4,
+      "D1_loc_per_test": 31.51,
+      "D2_param_ratio": 0.004
+    },
+    "SwiftyJSON": {
+      "lang": "swift",
+      "scope": "core JSON value contract via import SwiftyJSON; whole human XCTest suite (149 tests) is the baseline",
+      "A1_substring_match": 0,
+      "A2_private_symbol": null,
+      "A4_recomputed_crypto": 0,
+      "A5_or_joined": 0,
+      "C1_mock_real": 0,
+      "C2_mock_framework": 0,
+      "B1_fixed_vector": 24,
+      "files": 18,
+      "test_count": 149,
+      "test_loc": 2782,
+      "parametrize": 0,
+      "D1_loc_per_test": 18.67,
+      "D2_param_ratio": 0.0
+    }
+  },
+  "arms": [
+    {
+      "repo": "kotlinx-serialization",
+      "policy": "oneshot",
+      "present": true,
+      "lang": "kotlin",
+      "green": false,
+      "passed": 0,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlinx-serialization-json-tests:jvmTest",
+      "test_count": 41,
+      "test_loc": 470,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 21,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 10,
+          "base": 211,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 11.46,
+          "base": 21.55,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.171,
+          "base": 0.03,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 5,
+      "losses": 1,
+      "ties": 2,
+      "better": true
+    },
+    {
+      "repo": "kotlinx-serialization",
+      "policy": "iter2",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 73,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlinx-serialization-json-tests:jvmTest",
+      "test_count": 51,
+      "test_loc": 557,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 21,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 20,
+          "base": 211,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 10.92,
+          "base": 21.55,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.137,
+          "base": 0.03,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 5,
+      "losses": 1,
+      "ties": 2,
+      "better": true
+    },
+    {
+      "repo": "kotlinx-serialization",
+      "policy": "iter20",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 106,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlinx-serialization-json-tests:jvmTest",
+      "test_count": 82,
+      "test_loc": 919,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 21,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 1,
+          "verdict": "WIN"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 28,
+          "base": 211,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 11.21,
+          "base": 21.55,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.11,
+          "base": 0.03,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 5,
+      "losses": 1,
+      "ties": 2,
+      "better": true
+    },
+    {
+      "repo": "kotlinx-datetime",
+      "policy": "oneshot",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 46,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlinx-datetime:jvmTest -x compileJavaModuleInfo",
+      "test_count": 46,
+      "test_loc": 501,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 3,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 8,
+          "base": 127,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 10.89,
+          "base": 21.04,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.0,
+          "verdict": "TIE"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 5,
+      "better": true
+    },
+    {
+      "repo": "kotlinx-datetime",
+      "policy": "iter2",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 53,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlinx-datetime:jvmTest -x compileJavaModuleInfo",
+      "test_count": 53,
+      "test_loc": 575,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 3,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 16,
+          "base": 127,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 10.85,
+          "base": 21.04,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.0,
+          "verdict": "TIE"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 5,
+      "better": true
+    },
+    {
+      "repo": "kotlinx-datetime",
+      "policy": "iter20",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 68,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlinx-datetime:jvmTest -x compileJavaModuleInfo",
+      "test_count": 68,
+      "test_loc": 737,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 3,
+          "verdict": "WIN"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 22,
+          "base": 127,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 10.84,
+          "base": 21.04,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.0,
+          "verdict": "TIE"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 5,
+      "better": true
+    },
+    {
+      "repo": "kotlin-result",
+      "policy": "oneshot",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 61,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlin-result:jvmTest",
+      "test_count": 61,
+      "test_loc": 423,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 52,
+          "base": 0,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 6.93,
+          "base": 16.56,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.0,
+          "verdict": "TIE"
+        }
+      },
+      "wins": 2,
+      "losses": 0,
+      "ties": 6,
+      "better": true
+    },
+    {
+      "repo": "kotlin-result",
+      "policy": "iter2",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 86,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlin-result:jvmTest",
+      "test_count": 86,
+      "test_loc": 618,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 71,
+          "base": 0,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 7.19,
+          "base": 16.56,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.0,
+          "verdict": "TIE"
+        }
+      },
+      "wins": 2,
+      "losses": 0,
+      "ties": 6,
+      "better": true
+    },
+    {
+      "repo": "kotlin-result",
+      "policy": "iter20",
+      "present": true,
+      "lang": "kotlin",
+      "green": true,
+      "passed": 63,
+      "failed": 0,
+      "run_cmd": "./gradlew :kotlin-result:jvmTest",
+      "test_count": 63,
+      "test_loc": 422,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 50,
+          "base": 0,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 6.7,
+          "base": 16.56,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.0,
+          "base": 0.0,
+          "verdict": "TIE"
+        }
+      },
+      "wins": 2,
+      "losses": 0,
+      "ties": 6,
+      "better": true
+    },
+    {
+      "repo": "swift-argument-parser",
+      "policy": "oneshot",
+      "present": true,
+      "lang": "swift",
+      "green": false,
+      "passed": 0,
+      "failed": 0,
+      "run_cmd": "swift test --filter ArgumentParserEndToEndTests",
+      "test_count": 20,
+      "test_loc": 352,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 0,
+          "base": 14,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 17.6,
+          "base": 25.57,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.5,
+          "base": 0.0,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "swift-argument-parser",
+      "policy": "iter2",
+      "present": true,
+      "lang": "swift",
+      "green": true,
+      "passed": 20,
+      "failed": 0,
+      "run_cmd": "swift test --filter ArgumentParserEndToEndTests",
+      "test_count": 23,
+      "test_loc": 375,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 5,
+          "base": 14,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 16.3,
+          "base": 25.57,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.522,
+          "base": 0.0,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "swift-argument-parser",
+      "policy": "iter20",
+      "present": true,
+      "lang": "swift",
+      "green": true,
+      "passed": 31,
+      "failed": 0,
+      "run_cmd": "swift test --filter ArgumentParserEndToEndTests",
+      "test_count": 33,
+      "test_loc": 529,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 12,
+          "base": 14,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 16.03,
+          "base": 25.57,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.424,
+          "base": 0.0,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "swift-collections",
+      "policy": "oneshot",
+      "present": true,
+      "lang": "swift",
+      "green": false,
+      "passed": 0,
+      "failed": 0,
+      "run_cmd": "swift test --filter OrderedCollectionsTests",
+      "test_count": 31,
+      "test_loc": 354,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 3,
+          "base": 36,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 11.42,
+          "base": 31.51,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.097,
+          "base": 0.004,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "swift-collections",
+      "policy": "iter2",
+      "present": true,
+      "lang": "swift",
+      "green": true,
+      "passed": 36,
+      "failed": 0,
+      "run_cmd": "swift test --filter OrderedCollectionsTests",
+      "test_count": 36,
+      "test_loc": 445,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 31,
+          "base": 36,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 12.36,
+          "base": 31.51,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.139,
+          "base": 0.004,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "swift-collections",
+      "policy": "iter20",
+      "present": true,
+      "lang": "swift",
+      "green": true,
+      "passed": 42,
+      "failed": 0,
+      "run_cmd": "swift test --filter OrderedCollectionsTests",
+      "test_count": 42,
+      "test_loc": 529,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 45,
+          "base": 36,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 12.6,
+          "base": 31.51,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.119,
+          "base": 0.004,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 3,
+      "losses": 0,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "SwiftyJSON",
+      "policy": "oneshot",
+      "present": true,
+      "lang": "swift",
+      "green": true,
+      "passed": 19,
+      "failed": 0,
+      "run_cmd": "swift test",
+      "test_count": 19,
+      "test_loc": 236,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 20,
+          "base": 24,
+          "verdict": "LOSS"
+        },
+        "D1_loc_per_test": {
+          "gen": 12.42,
+          "base": 18.67,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.105,
+          "base": 0.0,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 2,
+      "losses": 1,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "SwiftyJSON",
+      "policy": "iter2",
+      "present": true,
+      "lang": "swift",
+      "green": true,
+      "passed": 20,
+      "failed": 0,
+      "run_cmd": "swift test",
+      "test_count": 20,
+      "test_loc": 267,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 30,
+          "base": 24,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 13.35,
+          "base": 18.67,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.1,
+          "base": 0.0,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 3,
+      "losses": 0,
+      "ties": 4,
+      "better": true
+    },
+    {
+      "repo": "SwiftyJSON",
+      "policy": "iter20",
+      "present": true,
+      "lang": "swift",
+      "green": true,
+      "passed": 20,
+      "failed": 0,
+      "run_cmd": "swift test",
+      "test_count": 20,
+      "test_loc": 210,
+      "c2_mock_framework": 0,
+      "axes": {
+        "A1_substring_match": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A2_private_symbol": {
+          "gen": null,
+          "base": null,
+          "verdict": "N/A"
+        },
+        "A4_recomputed_crypto": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "A5_or_joined": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "C1_mock_real": {
+          "gen": 0,
+          "base": 0,
+          "verdict": "TIE"
+        },
+        "B1_fixed_vector": {
+          "gen": 28,
+          "base": 24,
+          "verdict": "WIN"
+        },
+        "D1_loc_per_test": {
+          "gen": 10.5,
+          "base": 18.67,
+          "verdict": "WIN"
+        },
+        "D2_param_ratio": {
+          "gen": 0.1,
+          "base": 0.0,
+          "verdict": "WIN"
+        }
+      },
+      "wins": 3,
+      "losses": 0,
+      "ties": 4,
+      "better": true
+    }
+  ]
+}

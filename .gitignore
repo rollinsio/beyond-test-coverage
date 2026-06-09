@@ -15,6 +15,15 @@
 /golang-jwt/
 /chi/
 /gjson/
+# Kotlin + Swift validation targets (third-party clones, same policy as above)
+/kotlinx-serialization/
+/kotlinx-datetime/
+/kotlin-result/
+/swift-argument-parser/
+/swift-collections/
+/SwiftyJSON/
+# Scratch dir used to calibrate the kotlin/swift scorer profiles against real suites
+/bench-clones/
 
 # Python + tooling artifacts (in case any leak into the root)
 __pycache__/

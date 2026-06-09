@@ -137,8 +137,9 @@ mechanical ones and leaves the judgement ones to review:
 
 [`scripts/...score.py`](.claude/skills/test-quality/scripts/score.py)
 auto-counts A.1/A.2/A.4/A.5, B.1, C.1/C.2, D.1/D.2 across Python, JS/TS,
-and Go and prints the head-to-head Win/Loss/Tie tally. The rest are
-review-time judgement calls.
+Go, Kotlin (kotlin.test/JUnit5/Kotest), and Swift (XCTest/Swift
+Testing/Quick) and prints the head-to-head Win/Loss/Tie tally. The rest
+are review-time judgement calls.
 
 ## Use it on your own suite
 
@@ -164,8 +165,34 @@ Or score any suite directly, without the skill harness:
 
 ```bash
 python .claude/skills/test-quality/scripts/score.py \
-    --tests path/to/tests --baseline path/to/old_tests --lang python|js|go
+    --tests path/to/tests --baseline path/to/old_tests --lang python|js|go|kotlin|swift
 ```
+
+The Python profile is the empirically-validated one (it drove the experiment
+above). `js`, `go`, `kotlin`, and `swift` apply the same rubric with heuristic,
+framework-appropriate regexes; the Kotlin and Swift profiles were calibrated
+against six real, well-tested suites — `kotlinx.serialization`,
+`kotlinx-datetime`, `kotlin-result`, `swift-argument-parser`, `swift-collections`,
+and `SwiftyJSON` — with every calibration finding pinned as a named regression in
+[`tests/test_score.py`](.claude/skills/test-quality/tests/test_score.py).
+
+Beyond calibration, the **full Kotlin/Swift generation matrix was executed** the
+same way as the nine-library experiment — **six repos × three iteration policies
+(oneshot / iter2 / iter20) = 18 arms**, each deleting the human suite,
+regenerating from source against the scorecard, building/running with the real
+toolchain (JDK 17 + Gradle; Apple Swift 6.1.2), and scoring vs the human
+baseline. **All 18 arms beat their baseline** on the countable axes; **15 are
+green** — the three reds are all *oneshot* (one pass, no repair) and fail to
+*compile*, the same "one pass wins quality but ships failures; iteration makes it
+green" pattern the Python/JS runs showed. Every W/L/T was re-scored independently
+of the generating agent, and every green count re-run from the real toolchain.
+The two largest repos (`kotlinx.serialization`, `swift-collections`) are scoped to
+a coherent core module, stated explicitly. See
+[`results-kotlin-swift-scorecard.md`](results-kotlin-swift-scorecard.md) and
+[`reports/kotlin-swift-generation.md`](reports/kotlin-swift-generation.md).
+(These profiles are heuristic, not the empirically-validated Python set, so read
+the axis counts as toolchain-verified trends confirmed by reading, not validated
+ground truth.)
 
 ## Repository layout
 

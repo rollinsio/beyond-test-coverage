@@ -12,8 +12,8 @@ description: >-
   scorecard and iterates until it plateaus, holding coverage as a non-regression
   floor and REPL-verifying library assumptions. Works across stacks —
   Python/pytest (validated), JavaScript/TypeScript (Jest, Vitest, Mocha/Chai,
-  node:test), and Go — with a per-language scorer; the rubric is the same
-  everywhere.
+  node:test), Go, Kotlin (kotlin.test/JUnit5/Kotest), and Swift (XCTest/Swift
+  Testing/Quick) — with a per-language scorer; the rubric is the same everywhere.
 license: MIT
 metadata:
   author: Michael Rollins
@@ -56,16 +56,19 @@ better LOC efficiency — with every test traceable to a user-observable contrac
   - Jest: `npx jest --coverage` · Vitest: `npx vitest run --coverage`
   - Mocha: `npx c8 --check-coverage mocha` (c8/nyc for coverage)
   - Go: `go test -cover -coverprofile=cover.out ./... && go tool cover -func=cover.out`
+  - Kotlin: `./gradlew test` (coverage via the JaCoCo/Kover plugin if configured)
+  - Swift: `swift test --enable-code-coverage` (SwiftPM) or `xcodebuild test` (Xcode)
   Read `pyproject.toml`/`pytest.ini`, `package.json`(`scripts.test`,
-  jest/vitest config), `go.mod`, `Makefile` to find the project's real command —
-  prefer it over the defaults above.
+  jest/vitest config), `go.mod`, `build.gradle(.kts)`/`settings.gradle`,
+  `Package.swift`, `Makefile` to find the project's real command — prefer it over
+  the defaults above.
 
 ## Procedure
 
 ### 1. Scope & detect
 Identify the source package and its tests dir. Detect the **language/framework**
-(this sets the `score.py --lang` profile: `python`, `js`, or `go`) and the
-coverage-enabled test command. Determine the **mode**:
+(this sets the `score.py --lang` profile: `python`, `js`, `go`, `kotlin`, or
+`swift`) and the coverage-enabled test command. Determine the **mode**:
 - tests exist for the target → **audit + improve** (refactor in place).
 - target is untested → **generate** a fresh suite.
 (A target can be mixed: improve what exists, generate for the gaps.)
@@ -137,11 +140,18 @@ are no contract violations left and every source boundary has a test.
 
 - **Validation tiers.** Python/pytest is empirically validated (the scorer's
   numbers were checked against a controlled experiment). The `js` (Jest/Vitest/
-  Mocha/node:test) and `go` profiles apply the same axes with heuristic regexes —
-  trustworthy for trends and worst-offenders, but lean harder on reading the
-  tests, and treat the W/L/T tally as indicative, not authoritative.
-- **Other stacks** (JUnit, RSpec, xUnit, …): the rubric and contract still apply
-  by judgment. To add a first-class profile, extend `PROFILES` in
+  Mocha/node:test), `go`, `kotlin` (kotlin.test/JUnit5/Kotest), and `swift`
+  (XCTest/Swift Testing/Quick) profiles apply the same axes with heuristic
+  regexes — trustworthy for trends and worst-offenders, but lean harder on
+  reading the tests, and treat the W/L/T tally as indicative, not authoritative.
+  The kotlin/swift regexes were calibrated against six real, well-tested suites
+  (see `tests/test_score.py` for the named regressions). Two language-specific
+  notes: Kotest spec leaves are only counted when written `name(...) { … }` with a
+  body (StringSpec's `"name" { … }` and BehaviorSpec given/when/then are missed),
+  and A.2 (private access) is `n/a` for Swift — `@testable import` of `internal`
+  is idiomatic and `private` is unreachable (as same-package access is in Go).
+- **Other stacks** (RSpec, xUnit, JUnit-for-Java, …): the rubric and contract
+  still apply by judgment. To add a first-class profile, extend `PROFILES` in
   `scripts/score.py` (file globs + a `test_def` regex + the per-axis regexes) —
   it's a self-contained dict per language.
 - For a large target, scope to one module/package per invocation rather than a
