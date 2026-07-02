@@ -92,7 +92,8 @@ Across **27 quality-driven runs** (9 libraries × 3 iteration budgets),
 structural: the generated suites are dramatically **more LOC-efficient**
 than every baseline, carry **zero substring-match assertions** and **no
 hand mocks** of the code under test, cut private-symbol access sharply
-(185 → 59 across the Python matrix — though not to zero), and are more
+(the coverage-driven arms' 185 total fell to 59 under quality-driven
+across the Python matrix — though not to zero), and are more
 parametrized than most baselines.
 
 Three honest caveats the numbers also surfaced:
@@ -122,12 +123,17 @@ Three honest caveats the numbers also surfaced:
 - [`docs/python-results.html`](docs/python-results.html) — the
   Python dashboard, including the decomposition of *why* coverage-driven
   scored 2/9 and quality-driven scored 9/9.
+- [`docs/kotlin-swift-results.html`](docs/kotlin-swift-results.html) —
+  the Kotlin/Swift matrix dashboard: six libraries × three policies,
+  all 18 arms vs their maintainer-written baselines.
 - [`FINDINGS.md`](FINDINGS.md) — the full running analysis.
 
 Static previews live in [`examples/`](examples/) (GitHub renders the HTML
 dashboards as source, so open them locally for the interactive charts):
 
 [![Cross-language results — 18/18 arms beat the human baseline](examples/cross-language-results.png)](docs/cross-language-results.html)
+
+[![Kotlin + Swift matrix — all 18 arms beat their maintainer-written baselines](examples/kotlin-swift-results.png)](docs/kotlin-swift-results.html)
 
 ## The quality scorecard
 
@@ -195,7 +201,8 @@ green** — the three reds are all *oneshot* (one pass, no repair) and fail to
 green" pattern the Python/JS runs showed. Every W/L/T was re-scored independently
 of the generating agent, and every green count re-run from the real toolchain.
 The two largest repos (`kotlinx.serialization`, `swift-collections`) are scoped to
-a coherent core module, stated explicitly. See
+a coherent core module, stated explicitly. See the
+[interactive dashboard](docs/kotlin-swift-results.html),
 [`results-kotlin-swift-scorecard.md`](results-kotlin-swift-scorecard.md) and
 [`reports/kotlin-swift-generation.md`](reports/kotlin-swift-generation.md).
 (These profiles are heuristic, not the empirically-validated Python set, so read

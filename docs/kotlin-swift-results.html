@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kotlin + Swift matrix</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         background: #0f1117; color: #e1e4e8; padding: 40px; }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .subtitle { color: #8b949e; margin-bottom: 32px; font-size: 14px; max-width: 1040px; line-height: 1.6; }
+  code { font-family: 'SF Mono','Fira Code',monospace; background: #1f2937; padding: 1px 5px;
+         border-radius: 3px; font-size: 0.92em; color: #e3b341; }
+  section { margin-bottom: 44px; }
+  section > h2 { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px;
+                 padding-bottom: 8px; border-bottom: 1px solid #30363d; }
+  .hero { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 40px; }
+  .hcard { flex: 1; min-width: 180px; border: 1px solid #30363d; border-radius: 12px;
+           padding: 20px 22px; background: #161b22; text-align: center; }
+  .hcard .lab { font-size: 12px; font-weight: 700; text-transform: uppercase;
+                letter-spacing: 1px; margin-bottom: 12px; color: #c9d1d9; }
+  .hcard .big { font-size: 48px; font-weight: 700; line-height: 1; color: #3fb950; }
+  .hcard .big small { font-size: 22px; color: #8b949e; font-weight: 500; }
+  .hcard .desc { font-size: 12px; color: #8b949e; margin-top: 10px; }
+  .cbox { position: relative; height: 300px; border: 1px solid #30363d; border-radius: 10px;
+          background: #161b22; padding: 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { border: 1px solid #30363d; padding: 7px 9px; text-align: center; }
+  th { background: #161b22; color: #8b949e; font-weight: 600; font-size: 12px; }
+  td.wt { text-align: left; font-family: 'SF Mono','Fira Code',monospace; font-size: 12px;
+          color: #c9d1d9; background: #11151c; white-space: nowrap; }
+  td .v { display: block; font-size: 10px; color: #8b949e; }
+  .cell-win  { background: rgba(63,185,80,0.14); color: #3fb950; }
+  .cell-loss { background: rgba(248,81,73,0.13); color: #f85149; font-weight: 600; }
+  .cell-tie  { color: #687078; }
+  .cell-na   { color: #444c56; }
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+  .b-green { background: rgba(63,185,80,0.16); color: #3fb950; }
+  .b-red   { background: rgba(248,81,73,0.16); color: #f85149; }
+  .footer { color: #586069; font-size: 12px; margin-top: 36px; border-top: 1px solid #30363d;
+            padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Kotlin + Swift matrix</h1>
+  <p class="subtitle">Six libraries, three policies — all 18 arms scored against their maintainer-written baselines.</p>
+
+  <div class="hero"><div class="hcard"><div class="lab">arms beat baseline</div><div class="big">18<small>/18</small></div><div class="desc">wins &gt; losses on the auto-countable axes</div></div>
+<div class="hcard"><div class="lab">kotlin arms</div><div class="big">9<small>/9</small></div><div class="desc">beat baseline</div></div>
+<div class="hcard"><div class="lab">swift arms</div><div class="big">9<small>/9</small></div><div class="desc">beat baseline</div></div></div>
+
+  <section>
+    <h2>Per-axis: Win / Tie / Loss across 18 arms</h2>
+    <div class="cbox"><canvas id="axisChart"></canvas></div>
+  </section>
+
+  <section>
+    <h2>Per-suite matrix — every arm, every axis</h2>
+    <table>
+      <thead><tr><th>repo / policy</th><th>A1</th><th>A2</th><th>A4</th><th>A5</th><th>C1</th><th>B1</th><th>D1</th><th>D2</th><th>W/L/T</th><th>better</th></tr></thead>
+      <tbody><tr><td class="wt">kotlinx-serialization / oneshot</td><td class="cell-win">0<span class="v">21✓</span></td><td class="cell-win">0<span class="v">1✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">0<span class="v">1✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">10<span class="v">211✗</span></td><td class="cell-win">11.46<span class="v">21.55✓</span></td><td class="cell-win">0.171<span class="v">0.03✓</span></td><td>5/1/2</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlinx-serialization / iter2</td><td class="cell-win">0<span class="v">21✓</span></td><td class="cell-win">0<span class="v">1✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">0<span class="v">1✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">20<span class="v">211✗</span></td><td class="cell-win">10.92<span class="v">21.55✓</span></td><td class="cell-win">0.137<span class="v">0.03✓</span></td><td>5/1/2</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlinx-serialization / iter20</td><td class="cell-win">0<span class="v">21✓</span></td><td class="cell-win">0<span class="v">1✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">0<span class="v">1✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">28<span class="v">211✗</span></td><td class="cell-win">11.21<span class="v">21.55✓</span></td><td class="cell-win">0.11<span class="v">0.03✓</span></td><td>5/1/2</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlinx-datetime / oneshot</td><td class="cell-win">0<span class="v">3✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">8<span class="v">127✗</span></td><td class="cell-win">10.89<span class="v">21.04✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td>2/1/5</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlinx-datetime / iter2</td><td class="cell-win">0<span class="v">3✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">16<span class="v">127✗</span></td><td class="cell-win">10.85<span class="v">21.04✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td>2/1/5</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlinx-datetime / iter20</td><td class="cell-win">0<span class="v">3✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">22<span class="v">127✗</span></td><td class="cell-win">10.84<span class="v">21.04✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td>2/1/5</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlin-result / oneshot</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">52<span class="v">0✓</span></td><td class="cell-win">6.93<span class="v">16.56✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td>2/0/6</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlin-result / iter2</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">71<span class="v">0✓</span></td><td class="cell-win">7.19<span class="v">16.56✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td>2/0/6</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">kotlin-result / iter20</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">50<span class="v">0✓</span></td><td class="cell-win">6.7<span class="v">16.56✓</span></td><td class="cell-tie">0<span class="v">0=</span></td><td>2/0/6</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">swift-argument-parser / oneshot</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">0<span class="v">14✗</span></td><td class="cell-win">17.6<span class="v">25.57✓</span></td><td class="cell-win">0.5<span class="v">0✓</span></td><td>2/1/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">swift-argument-parser / iter2</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">5<span class="v">14✗</span></td><td class="cell-win">16.3<span class="v">25.57✓</span></td><td class="cell-win">0.522<span class="v">0✓</span></td><td>2/1/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">swift-argument-parser / iter20</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">12<span class="v">14✗</span></td><td class="cell-win">16.03<span class="v">25.57✓</span></td><td class="cell-win">0.424<span class="v">0✓</span></td><td>2/1/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">swift-collections / oneshot</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">3<span class="v">36✗</span></td><td class="cell-win">11.42<span class="v">31.51✓</span></td><td class="cell-win">0.097<span class="v">0.004✓</span></td><td>2/1/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">swift-collections / iter2</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">31<span class="v">36✗</span></td><td class="cell-win">12.36<span class="v">31.51✓</span></td><td class="cell-win">0.139<span class="v">0.004✓</span></td><td>2/1/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">swift-collections / iter20</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">45<span class="v">36✓</span></td><td class="cell-win">12.6<span class="v">31.51✓</span></td><td class="cell-win">0.119<span class="v">0.004✓</span></td><td>3/0/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">SwiftyJSON / oneshot</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-loss">20<span class="v">24✗</span></td><td class="cell-win">12.42<span class="v">18.67✓</span></td><td class="cell-win">0.105<span class="v">0✓</span></td><td>2/1/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">SwiftyJSON / iter2</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">30<span class="v">24✓</span></td><td class="cell-win">13.35<span class="v">18.67✓</span></td><td class="cell-win">0.1<span class="v">0✓</span></td><td>3/0/4</td><td><span class="badge b-green">yes</span></td></tr>
+<tr><td class="wt">SwiftyJSON / iter20</td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-na">·<span class="v">··</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-tie">0<span class="v">0=</span></td><td class="cell-win">28<span class="v">24✓</span></td><td class="cell-win">10.5<span class="v">18.67✓</span></td><td class="cell-win">0.1<span class="v">0✓</span></td><td>3/0/4</td><td><span class="badge b-green">yes</span></td></tr></tbody>
+    </table>
+  </section>
+
+  <div class="footer">
+    Generated from <code>results-kotlin-swift-scorecard.json</code> by the <code>results-dashboard</code> skill.
+    Each cell is <code>gen</code> over <code>base</code> with ✓ win / ✗ loss / = tie / · n-a.
+  </div>
+</div>
+<script>
+new Chart(document.getElementById('axisChart'), {
+  type: 'bar',
+  data: { labels: ["A1", "A2", "A4", "A5", "C1", "B1", "D1", "D2"],
+    datasets: [
+      { label: 'win',  data: [6, 3, 0, 3, 0, 6, 18, 12],  backgroundColor: '#3fb950' },
+      { label: 'tie',  data: [12, 6, 18, 15, 18, 0, 0, 6],  backgroundColor: '#444c56' },
+      { label: 'loss', data: [0, 0, 0, 0, 0, 12, 0, 0], backgroundColor: '#f85149' },
+      { label: 'n/a',  data: [0, 9, 0, 0, 0, 0, 0, 0],   backgroundColor: '#21262d' },
+    ] },
+  options: { responsive: true, maintainAspectRatio: false,
+    scales: { x: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+               y: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' },
+                    title: { display: true, text: 'arms', color: '#8b949e' } } },
+    plugins: { legend: { labels: { color: '#c9d1d9', boxWidth: 12 } } } }
+});
+</script>
+</body>
+</html>

@@ -35,8 +35,11 @@ the pre-fix scorer. Each fix has a named regression test in
   paren hid the `match=` kwarg.
 - **Python C.1 missed the stdlib `mock.patch` idiom** — `from unittest import
   mock; mock.patch(...)` / `mock.patch.object(...)` scored 0 (only `mocker`,
-  bare `patch(`, `Mock(`, `MagicMock` counted). `aggregate_results.py` already
-  counted `unittest.mock` — the instruments now agree.
+  bare `patch(`, `Mock(`, `MagicMock` counted). `score.py` now catches it via
+  a `mock.patch` alternative. Note the instruments still differ textually:
+  `aggregate_results.py` matches the literal `unittest.mock` (which does not
+  fire on `from unittest import mock` + `mock.patch(...)`) and lacks the
+  `mock.patch` alternative, so the two can disagree on that idiom.
 - **Go `test_def` missed testify suite methods and counted `TestMain`** — now
   matches an optional method receiver (`func (s *Suite) TestFoo(`) and
   excludes exactly `TestMain` (a `TestMainPage` still counts).

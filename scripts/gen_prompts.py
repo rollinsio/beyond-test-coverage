@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Materialize per-worktree prompt files for the benchmark.
 
+HISTORICAL — this drove the original coverage-driven control (the nine runs in
+``reports/``): it is hardcoded to that experiment's ``wt-<policy>`` worktree
+layout and coverage-gated prompts. The later quality / ablation /
+cross-language arms are set up by ``setup_quality.py`` and
+``setup_cross_language.py`` instead.
+
 Writes ``<worktree>/.rex_prompt.md`` and ``<worktree>/start.sh`` for each
 (repo, policy) combination. ``start.sh`` activates the base venv and launches
 Claude Code with the prompt as the initial user message.

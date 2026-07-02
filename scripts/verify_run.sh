@@ -3,6 +3,11 @@
 # verification record to stdout. Designed to be invoked in parallel
 # across all 9 worktrees.
 #
+# HISTORICAL — verifies the original coverage-driven control's wt-<policy>
+# worktrees (the nine runs in reports/); the quality / cross-language arms
+# use the wt-r2-* / wt-r3-* layouts created by setup_quality.py and
+# setup_cross_language.py.
+#
 # Usage: verify_run.sh <repo> <policy>
 set -uo pipefail
 

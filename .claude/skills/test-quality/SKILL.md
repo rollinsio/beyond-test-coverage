@@ -34,7 +34,8 @@ model, drove the gain). The two reference docs are that experiment's distilled
 output:
 - `references/quality-contract.md` — 10 anti-fragility rules, each with the repair.
 - `references/scorecard.md` — the scoring axes, the improvement gate, the stop condition.
-- `scripts/score.py` — measures the auto-countable axes for any pytest suite.
+- `scripts/score.py` — measures the auto-countable axes for a suite in any
+  supported language (Python/pytest, JS/TS, Go, Kotlin, Swift).
 
 **Read both reference docs before starting.** They are the substance; this file
 is the procedure.
@@ -76,7 +77,7 @@ Identify the source package and its tests dir. Detect the **language/framework**
 ### 2. Capture the baseline (do this BEFORE changing anything)
 - Run the suite with branch coverage; record line % and branch % — this is the
   coverage floor.
-- `python <skill>/scripts/score.py --tests <tests_dir> [--lang python|js|go]`
+- `python <skill>/scripts/score.py --tests <tests_dir> [--lang python|js|go|kotlin|swift]`
   for the auto axes (`--lang` auto-detects if omitted).
 - Preserve the starting state so you can score against it: copy the tests dir
   aside, or note the git ref. Later runs use `--baseline <that copy>`.

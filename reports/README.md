@@ -1,5 +1,13 @@
 # Run reports — index and cross-policy comparison
 
+> **These nine runs are the coverage-driven *control*, not the headline
+> experiment.** They were generated with the original coverage-gated prompts
+> (success = "exceed the baseline coverage %"), and mostly lose to the human
+> baselines — that result is what motivated re-aiming the loop at the quality
+> scorecard, where the regenerated suites beat their baseline on every run
+> (see the top-level [README](../README.md) and
+> [`results-quality-scorecard.md`](../results-quality-scorecard.md)).
+
 Nine runs, three repos, three policies. Each individual report compares one
 generated suite to the original (human-written) test suite of the same repo.
 
@@ -37,8 +45,12 @@ files); a confirming audit would refine the verdicts marked ❓.
 - [requests / iter2](requests-iter2.md)
 - [requests / iter20](requests-iter20.md)
 
-Companion document with the deep cross-policy fragility synthesis for
-itsdangerous: [audit_itsdangerous.md](../audit_itsdangerous.md).
+Companion documents:
+
+- [audit_itsdangerous.md](../audit_itsdangerous.md) — the deep cross-policy
+  fragility synthesis for itsdangerous.
+- [baseline_summary.md](baseline_summary.md) — the measured coverage baselines
+  for the three Python repos these runs were scored against.
 
 **Read this first:** [VERIFICATION.md](VERIFICATION.md) — late-stage
 verification pass that re-ran all 9 suites, hash-compared generated

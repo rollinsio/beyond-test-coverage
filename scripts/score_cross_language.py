@@ -22,8 +22,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SCORE_PY = ROOT / ".claude" / "skills" / "test-quality" / "scripts" / "score.py"
 
 # repo -> (lang, tests_dir). "." = whole module (the scorer's per-language
-# test_file regex filters to test files, so "." is safe for colocated layouts —
-# Go _test.go, Kotlin test source sets, Swift Tests/).
+# test_file regex filters to test files, so "." is safe for colocated layouts
+# like Go _test.go).
 REPOS = {
     "express": ("js", "test"),
     "jsonwebtoken": ("js", "test"),
@@ -31,16 +31,12 @@ REPOS = {
     "chi": ("go", "."),
     "gjson": ("go", "."),
     "golang-jwt": ("go", "."),
-    # Kotlin + Swift validation targets. Scored once their clone is on disk at
-    # <repo>/base; un-cloned repos are skipped (see the base.exists() guard in
-    # main), so adding them here does not disturb the committed JS/Go run.
-    "kotlinx-serialization": ("kotlin", "."),
-    "kotlinx-datetime": ("kotlin", "."),
-    "kotlin-result": ("kotlin", "."),
-    "swift-argument-parser": ("swift", "."),
-    "swift-collections": ("swift", "."),
-    "SwiftyJSON": ("swift", "."),
 }
+# Kotlin + Swift are scored by scripts/score_kotlin_swift_matrix.py instead:
+# it is manifest-driven and scopes the two largest repos to a coherent core
+# module, which is how the committed results-kotlin-swift-scorecard.json was
+# produced. Scoring those repos here (whole-repo, unscoped) would merge
+# baselines that contradict that scorecard into this one.
 POLICIES = ("oneshot", "iter2", "iter20")
 AXES = ["A1_substring_match", "A2_private_symbol", "A4_recomputed_crypto",
         "A5_or_joined", "C1_mock_real", "B1_fixed_vector",
@@ -66,7 +62,7 @@ def main() -> int:
     for repo, (lang, td) in REPOS.items():
         base = ROOT / repo / "base"
         if not base.exists():
-            continue   # clone not on disk (e.g. a kotlin/swift target not set up) — skip
+            continue   # clone not on disk — skip
         m = score.measure(tpath(base, td), lang)
         baselines[repo] = {"lang": lang, **m}
 
