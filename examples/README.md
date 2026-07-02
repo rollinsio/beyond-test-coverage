@@ -8,6 +8,7 @@ selector, and hover detail.
 |---|---|---|
 | [`cross-language-results.png`](cross-language-results.png) | [`docs/cross-language-results.html`](../docs/cross-language-results.html) | The cross-language result: 18/18 JS/TS + Go arms beat their human baseline, with the one-shot-vs-iterate split and the full per-suite matrix. |
 | [`python-results.png`](python-results.png) | [`docs/python-results.html`](../docs/python-results.html) | The Python decomposition: coverage-driven `2/9` → ablation `8/9` → quality `9/9`, isolating the prompt effect from the model effect. |
+| [`kotlin-swift-results.png`](kotlin-swift-results.png) | [`docs/kotlin-swift-results.html`](../docs/kotlin-swift-results.html) | The Kotlin/Swift matrix: six libraries × three policies, all 18 arms beating their maintainer-written baselines. |
 
 Regenerate the base readout from any scorecard JSON with the bundled
 [`results-dashboard`](../.claude/skills/results-dashboard/) skill:

@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install measurement-tooling deps
+        run: pip install -r requirements-dev.txt
+      - name: Unit tests (benchmark tooling + both skills)
+        run: >
+          python -m pytest -q
+          tests/
+          .claude/skills/test-quality/tests/
+          .claude/skills/results-dashboard/tests/
+      - name: Sabotage check (curated mutations must all be caught)
+        run: python scripts/sabotage_check.py
