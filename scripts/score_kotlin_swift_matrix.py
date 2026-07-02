@@ -47,10 +47,21 @@ def main() -> int:
     baselines, arms = {}, []
     for repo, cfg in manifest.items():
         lang = cfg["lang"]
+        if not Path(cfg["baseline_dir"]).exists():
+            print(f"skip {repo}: baseline dir {cfg['baseline_dir']} not found "
+                  "(clone missing)", file=sys.stderr)
+            continue
         b = score.measure(Path(cfg["baseline_dir"]), lang)
         baselines[repo] = {"lang": lang, "scope": cfg.get("scope", ""), **b}
 
+    if not baselines:
+        print("no repos scored — leaving the committed "
+              "results-kotlin-swift-scorecard.{json,md} untouched", file=sys.stderr)
+        return 1
+
     for repo, cfg in manifest.items():
+        if repo not in baselines:
+            continue
         lang = cfg["lang"]
         b = baselines[repo]
         for pol in POLICIES:

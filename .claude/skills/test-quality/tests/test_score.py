@@ -602,10 +602,13 @@ def test_new_profiles_registered_with_required_axes(lang):
 
 
 # ───────────────────────── Robustness ───────────────────────────────────────
-def test_empty_dir_is_all_zeros_no_crash(tmp_path):
+def test_empty_dir_ratio_axes_are_na_no_crash(tmp_path):
+    # Zero recognized tests → D.1/D.2 are uncountable (None → N/A verdict),
+    # NOT 0.0 — a 0.0 D.1 would read as best-possible and hand an empty
+    # suite a free win against any real baseline.
     m = score.measure(tmp_path, "js")
     assert m["files"] == 0 and m["test_count"] == 0
-    assert m["D1_loc_per_test"] == 0.0 and m["D2_param_ratio"] == 0.0
+    assert m["D1_loc_per_test"] is None and m["D2_param_ratio"] is None
     assert m["A1_substring_match"] == 0
 
 
@@ -613,4 +616,137 @@ def test_empty_dir_is_all_zeros_no_crash(tmp_path):
 def test_empty_dir_all_langs_no_crash(tmp_path, lang):
     m = score.measure(tmp_path, lang)
     assert m["files"] == 0 and m["test_count"] == 0
-    assert m["D1_loc_per_test"] == 0.0 and m["D2_param_ratio"] == 0.0
+    assert m["D1_loc_per_test"] is None and m["D2_param_ratio"] is None
+
+
+def test_empty_suite_never_beats_baseline(tmp_path):
+    # A vacuous suite trivially zeroes every lower-better count axis; the
+    # rendered tally must refuse to call that BETTER.
+    base = tmp_path / "base"
+    base.mkdir()
+    (base / "test_real.py").write_text(
+        "def test_a():\n    assert 'x' in str(e)\n"
+        "def test_b():\n    mocker.patch('pkg.f')\n"
+    )
+    cur = tmp_path / "cur"
+    cur.mkdir()
+    out = score.render(score.measure(cur, "python"),
+                       score.measure(base, "python"), "python")
+    assert "NOT better" in out and "no tests recognized" in out
+    assert "BETTER" not in out
+
+
+# ───────────────── Regressions from the 2026-07 correctness review ──────────
+def test_python_a2_ignores_public_snake_case_imports(tmp_path):
+    # The old regex let `[\w,\s]*` eat the head of a public name, so every
+    # snake_case import counted as "private access". Only names *starting*
+    # with `_` are private.
+    write(tmp_path, "test_x.py",
+          "from requests.utils import super_len\n"          # public -> no
+          "from itsdangerous import want_bytes\n"           # public -> no
+          "from mypkg import PUBLIC_CONST\n"                # public -> no
+          "from itsdangerous.signer import _make_keys_list\n"  # private -> yes
+          "from mypkg import want_bytes, _internal\n"       # private (2nd name) -> yes
+          "def test_x():\n    assert True\n")
+    assert score.measure(tmp_path, "python")["A2_private_symbol"] == 2
+
+
+def test_python_a1_counts_raises_tuple_with_match(tmp_path):
+    # pytest.raises((A, B), match=...) — the tuple's closing paren must not
+    # hide the match= kwarg from the counter.
+    write(tmp_path, "test_x.py",
+          "def test_x():\n"
+          "    with pytest.raises((ValueError, TypeError), match='boom'):\n"
+          "        go()\n"
+          "    with pytest.raises(ValueError, match='bang'):\n"
+          "        go()\n")
+    assert score.measure(tmp_path, "python")["A1_substring_match"] == 2
+
+
+def test_python_c1_counts_stdlib_mock_patch_idiom(tmp_path):
+    # `from unittest import mock; mock.patch(...)` is the most common stdlib
+    # spelling and must count; `mocker.patch` must still count exactly once
+    # (via `mocker`, not double-via `mock.patch`).
+    write(tmp_path, "test_x.py",
+          "def test_x():\n"
+          "    with mock.patch('pkg.f'):\n"                 # yes
+          "        pass\n"
+          "    with unittest.mock.patch.object(C, 'm'):\n"  # yes (mock.patch.object)
+          "        pass\n")
+    write(tmp_path, "test_y.py",
+          "def test_y():\n    mocker.patch('pkg.f')\n")     # exactly 1 (mocker)
+    m = score.measure(tmp_path, "python")
+    assert m["C1_mock_real"] == 3
+
+
+def test_go_counts_testify_suite_methods_and_skips_testmain(tmp_path):
+    write(tmp_path, "suite_test.go",
+          "func (s *RouterSuite) TestMount() {}\n"   # testify method -> yes
+          "func TestMain(m *testing.M) {}\n"         # harness, not a test -> no
+          "func TestMainPage(t *testing.T) {}\n"     # real test named Main* -> yes
+          "func TestPlain(t *testing.T) {}\n")       # yes
+    assert score.measure(tmp_path, "go")["test_count"] == 3
+
+
+@pytest.mark.parametrize("lang, ancestor, relfile", [
+    # A repo under an ancestor dir ending in `test` must not turn main-source
+    # files into tests: the test_file pattern is matched against the path
+    # relative to --tests (target dir name kept), never against ancestors.
+    ("kotlin", "latest", "repo/src/commonMain/kotlin/Main.kt"),
+    ("js", "test", "proj/src/index.js"),
+    ("swift", "Tests", "proj/Sources/Lib.swift"),
+])
+def test_ancestor_dirs_do_not_make_source_files_tests(tmp_path, lang, ancestor, relfile):
+    target = tmp_path / ancestor / relfile.split("/")[0]
+    write(tmp_path / ancestor, relfile, "class X\n")
+    assert score.measure(target, lang)["files"] == 0
+
+
+def test_target_dir_named_test_still_counts_EXPRESS_layout(tmp_path):
+    # The express layout: plain .js files under `test/`. Pointing --tests at
+    # the repo root (or the test dir itself) must still find them — the
+    # target's own name is kept in the matched path.
+    write(tmp_path, "test/routes.js", "it('routes', () => {});\n")
+    assert score.measure(tmp_path, "js")["files"] == 1
+    assert score.measure(tmp_path / "test", "js")["files"] == 1
+
+
+# ───────────────── Known gaps — xfail: desired behaviour, visible ────────────
+@pytest.mark.xfail(reason="Swift Testing `@Test func testFoo` matches both "
+                          "the @Test and `func test` alternatives — one test "
+                          "counted twice (deflates D.1)", strict=True)
+def test_swift_at_test_on_test_prefixed_func_counts_once(tmp_path):
+    write(tmp_path, "FooTests.swift",
+          "@Test func testRoundtrip() {}\n")
+    assert score.measure(tmp_path, "swift")["test_count"] == 1
+
+
+@pytest.mark.xfail(reason="Chai two-arg throw — expect(fn).to.throw(Type, "
+                          "'substr') asserts on message text but A.1 requires "
+                          "a quote directly after the paren", strict=True)
+def test_js_a1_counts_chai_two_arg_throw(tmp_path):
+    write(tmp_path, "x.test.js",
+          "it('t', () => { expect(fn).to.throw(TypeError, 'bad input'); });\n")
+    assert score.measure(tmp_path, "js")["A1_substring_match"] == 1
+
+
+@pytest.mark.xfail(reason="test_def is a plain grep — `def test_…(` inside "
+                          "comments or string literals inflates test_count "
+                          "(and flatters D.1/D.2 denominators)", strict=True)
+def test_python_test_count_ignores_comments_and_strings(tmp_path):
+    write(tmp_path, "test_x.py",
+          "# def test_commented():\n"
+          "s = 'def test_in_string('\n"
+          "def test_real():\n    assert True\n")
+    assert score.measure(tmp_path, "python")["test_count"] == 1
+
+
+@pytest.mark.xfail(reason="Python B.1 charset has no space — human-readable "
+                          "fixed vectors ('Hello, world …') don't count, "
+                          "unlike the 12+-char JS/Kotlin/Swift rule; queued "
+                          "with the B.1 harmonization proposal", strict=True)
+def test_python_b1_counts_human_readable_fixed_vector(tmp_path):
+    write(tmp_path, "test_x.py",
+          "def test_x():\n"
+          "    assert render(x) == 'Hello, world! A long fixed vector'\n")
+    assert score.measure(tmp_path, "python")["B1_fixed_vector"] == 1

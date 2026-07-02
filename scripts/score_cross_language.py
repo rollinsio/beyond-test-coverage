@@ -94,6 +94,11 @@ def main() -> int:
                 "axes": axes, "wins": w, "losses": l, "ties": t, "better": w > l,
             })
 
+    if not baselines:
+        print("no repos scored (no clones on disk) — leaving the committed "
+              "results-cross-language-scorecard.{json,md} untouched", file=sys.stderr)
+        return 1
+
     (ROOT / "results-cross-language-scorecard.json").write_text(
         json.dumps({"baselines": baselines, "arms": arms}, indent=2) + "\n")
 
@@ -105,7 +110,9 @@ def main() -> int:
           "= tie; `·` = n/a (axis not countable for the language).", "",
           "## Baselines", ""]
     for repo, (lang, _) in REPOS.items():
-        b = baselines[repo]
+        b = baselines.get(repo)
+        if b is None:
+            continue   # un-cloned repo, skipped above
         md.append(f"- **{repo}** ({lang}): tests={b['test_count']} loc={b['test_loc']} "
                   + " ".join(f"{a.split('_')[0]}={b.get(a)}" for a in scored))
     md += ["", "## Arms", "",
