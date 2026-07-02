@@ -90,20 +90,28 @@ Across **27 quality-driven runs** (9 libraries × 3 iteration budgets),
 **every one beat its human-written baseline** on the auto-countable axes —
 9/9 on Python, 18/18 across JS/TS and Go. The wins are consistent and
 structural: the generated suites are dramatically **more LOC-efficient**
-and **more parametrized** than every baseline, carry **zero fragile
-substring/private/recomputed assertions**, and use **no hand mocks** of
-the code under test — while holding or raising coverage.
+than every baseline, carry **zero substring-match assertions** and **no
+hand mocks** of the code under test, cut private-symbol access sharply
+(185 → 59 across the Python matrix — though not to zero), and are more
+parametrized than most baselines.
 
-Two honest caveats the numbers also surfaced:
+Three honest caveats the numbers also surfaced:
 
 - **A single pass already wins the quality axes** for every library — but
-  it tends to ship 1–4 self-authored failing tests. The *iteration* budget
-  is what makes the suite green and widens the margin. Quality and
-  shippability are different milestones.
-- The one axis the generated suites sometimes lose is **fixed-vector
+  it doesn't ship clean: every JS/Go oneshot suite carried 1–4
+  self-authored failing tests, and all three Kotlin/Swift oneshot reds
+  failed to compile. The *iteration* budget is what makes the suite green
+  and widens the margin. Quality and shippability are different milestones.
+- **Coverage held or rose in 25 of 27 runs.** The two exceptions are both
+  Python *oneshot* arms (httpx −7.0 pp line, requests −3.2 pp); their
+  iterated arms recovered the floor and then some.
+- The axis the generated suites most often lose is **fixed-vector
   count**, because we score it as an absolute count that scales with suite
   size and competes with LOC-efficiency. (Re-shaping it into a per-test
-  *ratio* is the next change — see [`CHANGELOG.md`](CHANGELOG.md).)
+  *ratio* is the next change — see [`CHANGELOG.md`](CHANGELOG.md).) On
+  Python, a few arms also lost an individual axis outright — one iter20
+  arm regressed private-access (A.2 14 v 10), three arms lost
+  parametrize-ratio — while still winning their overall tally.
 
 **Explore the numbers yourself:**
 

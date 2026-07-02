@@ -15,6 +15,58 @@ Format roughly follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Changes intended for a future round go here. Motivated by the cross-language
 Finding 17 (B.1).
 
+### Fixed — scorer (2026-07 correctness review)
+
+A correctness review of `score.py` (the live instrument the cross-language and
+Kotlin/Swift scripts import — the Python experiment's `score_quality.py`
+carries its own frozen copies of the regexes and is untouched). A re-score of
+preserved worktrees with the fixed scorer may therefore shift individual
+counts slightly; the committed `results-*.json` remain the record produced by
+the pre-fix scorer. Each fix has a named regression test in
+`tests/test_score.py`.
+
+- **Python A.2 counted every snake_case import as private access** — the
+  name-list in the `from … import …` alternative could consume the head of a
+  public name (`from requests.utils import super_len` counted). The `_` is now
+  anchored to the start of an identifier, and the name-list no longer spans
+  newlines (consecutive import lines used to merge into one match and
+  undercount).
+- **Python A.1 missed `pytest.raises((A, B), match=…)`** — the tuple's closing
+  paren hid the `match=` kwarg.
+- **Python C.1 missed the stdlib `mock.patch` idiom** — `from unittest import
+  mock; mock.patch(...)` / `mock.patch.object(...)` scored 0 (only `mocker`,
+  bare `patch(`, `Mock(`, `MagicMock` counted). `aggregate_results.py` already
+  counted `unittest.mock` — the instruments now agree.
+- **Go `test_def` missed testify suite methods and counted `TestMain`** — now
+  matches an optional method receiver (`func (s *Suite) TestFoo(`) and
+  excludes exactly `TestMain` (a `TestMainPage` still counts).
+- **Test-file patterns matched ancestor directories of `--tests`** — a repo
+  under e.g. `/home/ci/latest/` turned every `.kt` source file into a "test"
+  (`latest/` ends in `test`), poisoning counts and `detect_lang`. Patterns now
+  match the path relative to the target (keeping the target dir's own name —
+  the express `test/` layout still detects).
+- **An empty/unrecognized suite could "beat" a real baseline** — zero tests
+  trivially wins every lower-better count axis, and `D1 = 0.0` (LOC/test) read
+  as best-possible. D.1/D.2 are now `N/A` when no tests are recognized, and
+  the rendered tally refuses to report BETTER for a zero-test suite.
+- **Harness scripts no longer clobber committed results when clones are
+  absent** — `scorer_check.py`, `score_cross_language.py`, and
+  `score_kotlin_swift_matrix.py` used to overwrite `results-*.{json,md}` with
+  empty payloads when run without the (git-ignored) library clones on disk;
+  they now refuse and exit non-zero. `score_cross_language.py` also no longer
+  crashes (KeyError) rendering markdown when a listed repo is un-cloned.
+
+### Known gaps — scorer (pinned as strict `xfail` in `tests/test_score.py`)
+- Swift Testing `@Test func testFoo()` counts as 2 tests (matches both
+  `test_def` alternatives), deflating D.1.
+- Chai's two-arg `expect(fn).to.throw(TypeError, 'substr')` — a message
+  substring assert — is not counted as A.1.
+- `test_def` is a plain grep: `def test_…(` inside comments or string literals
+  inflates `test_count` (flatters the D.1/D.2 denominators).
+- Python B.1's charset has no space, so human-readable fixed vectors
+  (`== "Hello, world …"`) don't count — unlike the any-12+-char rule in
+  JS/Kotlin/Swift. Fold into the B.1 harmonization below.
+
 ### Proposed — scorecard (measurement)
 - **Re-shape B.1 from an absolute count to a per-test ratio** (fixed-vectors /
   test, like D.2). The cross-language experiment showed every arm's only loss
@@ -27,6 +79,21 @@ Finding 17 (B.1).
   deep-equals — which the current inline-string-literal regex misses (so
   fixed-vector-dense oneshot suites read B.1 ≈ 3–4). NOT applied mid-cross-language
   to avoid moving the frozen instrument post-generation.
+- **Harmonize B.1 across languages** (fold in with the ratio change): the
+  minimum-literal thresholds disagree (Python 16, JS/Kotlin/Swift 12, Go 12 or
+  8 depending on the alternative), and Go's bare `[]byte("` alternative counts
+  *input* construction — a generated Go suite can pump B.1 with literals that
+  assert nothing.
+- **Reconcile the Go A.1/B.1 split with the other profiles**: Go counts exact
+  message equality (`err.Error() == "…"`, `assert.EqualError`) as the A.1
+  smell, while the JS/Kotlin/Swift profiles deliberately classify exact
+  equality as a B.1 fixed vector and reserve A.1 for *partial* matchers. The
+  same idiom is currently penalized in Go and rewarded in JS.
+- **Decide the Kotlin C.1 unit**: every `every { … }`/`coEvery { … }` stub
+  line counts, which is the per-configuration double-counting the JS profile
+  documents avoiding (`mockReturnValue` is excluded there). Deliberate at
+  calibration time (pinned in the kotlin-result regression) but inconsistent
+  across profiles.
 
 ### Added — scorer (languages: Kotlin + Swift)
 - **`kotlin` and `swift` profiles in `score.py`**, applying the same axes as the

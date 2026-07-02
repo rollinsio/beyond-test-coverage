@@ -67,14 +67,26 @@ PROFILES = {
         "param": r"@pytest\.mark\.parametrize",
         "validated": True,
         "axes": {
-            "A1_substring_match": r"pytest\.raises\([^)]*match=|\bin str\(",
-            "A2_private_symbol": r"from [\w.]+ import [\w,\s]*_[a-zA-Z]\w*|\b\w+\._[a-zA-Z]\w*\(",
+            # `[^\n]*?match=` (not `[^)]*match=`) so a tuple of exception types
+            # — pytest.raises((A, B), match="…") — doesn't hide the match= kwarg
+            # behind the tuple's closing paren.
+            "A1_substring_match": r"pytest\.raises\([^\n]*?match=|\bin str\(",
+            # The `(?<![\w])_` anchor requires the imported name to *start* with
+            # an underscore; without it the name-list could consume the head of
+            # a public snake_case name (`from requests.utils import super_len`)
+            # and count every snake_case import as private access. The name-list
+            # class excludes `\n` so consecutive import lines can't merge into
+            # one match.
+            "A2_private_symbol": r"from [\w.]+ import [\w, \t]*(?<![\w])_[a-zA-Z]\w*|\b\w+\._[a-zA-Z]\w*\(",
             "A4_recomputed_crypto": r"\bhmac\.|\bhashlib\.|expected\s*=\s*(?:hmac|hashlib|base64)",
             "A5_or_joined": r"in str\([^)]*\)\s*or\s",
             # `patch(` guarded by a lookbehind so `mocker.patch`/`mock.patch`
             # aren't double-counted (already covered by `mocker`); the old
             # trailing \b dropped patch('str')/@patch/Mock() entirely.
-            "C1_mock_real": r"\bMagicMock\b|\bMock\(|(?<![.\w])patch\(|\bmocker\b",
+            # `\bmock.patch\b` catches the stdlib `from unittest import mock;
+            # mock.patch(...)` / `mock.patch.object(...)` idiom, which neither
+            # the lookbehind form nor `mocker` covers.
+            "C1_mock_real": r"\bMagicMock\b|\bMock\(|(?<![.\w])patch\(|\bmock\.patch\b|\bmocker\b",
             "C2_mock_framework": r"\b(?:MockTransport|WSGITransport|ASGITransport|monkeypatch|httpbin)\b",
             "B1_fixed_vector": r"""assert\s+[^\n=]*==\s*b?["'][A-Za-z0-9+/=\\xX_\-.]{16,}""",
         },
@@ -139,7 +151,11 @@ PROFILES = {
     "go": {
         "exts": [".go"],
         "test_file": r"_test\.go$",
-        "test_def": r"\bfunc\s+(?:Test|Fuzz)\w+\(",
+        # Optional method receiver covers testify suite methods
+        # (`func (s *Suite) TestFoo(`). `TestMain` is the package harness, not
+        # a test — the `(?!Main\b)` lookahead excludes exactly it while still
+        # counting real names like `TestMainPage`.
+        "test_def": r"\bfunc\s+(?:\([^)]*\)\s+)?(?:Test(?!Main\b)|Fuzz)\w+\(",
         "param": r"\bt\.Run\(",  # subtests ≈ table-driven parametrization
         "validated": False,
         "axes": {
@@ -327,7 +343,14 @@ def _iter_test_files(target: Path, profile: dict, compiled: dict):
             continue
         if skip & set(p.parts):
             continue
-        if compiled["test_file"].search(str(p)):
+        # Match against the path relative to the target (keeping the target
+        # dir's own name, which may itself be the `test/` signal) — never
+        # against ancestor directories, so a repo that happens to live under
+        # e.g. `/home/ci/latest/` can't turn every source file into a "test"
+        # (`latest/` ends in `test`). The leading separator keeps `[/\\]`-
+        # anchored dir patterns matching when the target dir is the signal.
+        rel = "/" + str(Path(target.name) / p.relative_to(target))
+        if compiled["test_file"].search(rel):
             yield p
 
 
@@ -364,8 +387,10 @@ def measure(tests_dir: Path, lang: str) -> dict:
     counts["test_count"] = test_count
     counts["test_loc"] = test_loc
     counts["parametrize"] = param
-    counts["D1_loc_per_test"] = round(test_loc / test_count, 2) if test_count else 0.0
-    counts["D2_param_ratio"] = round(param / test_count, 3) if test_count else 0.0
+    # No recognized tests → the ratio axes are uncountable (N/A), not 0.0 —
+    # 0.0 would read as a *perfect* D.1 and hand an empty suite a free win.
+    counts["D1_loc_per_test"] = round(test_loc / test_count, 2) if test_count else None
+    counts["D2_param_ratio"] = round(param / test_count, 3) if test_count else None
     return counts
 
 
@@ -409,8 +434,14 @@ def render(cur: dict, base: dict | None, lang: str) -> str:
         mark = {"WIN": "✓ win", "LOSS": "✗ loss", "TIE": "= tie", "N/A": "· n/a"}[v]
         lines.append(f"| {a} | {fmt(cur[a])} | {fmt(base[a])} | {mark} |")
     lines.append("")
-    lines.append(f"**Tally: {w} wins / {l} losses / {t} ties — "
-                 f"{'BETTER' if w > l else 'NOT better'} than baseline on countable axes.**")
+    # An empty/unrecognized suite trivially "wins" the lower-better count axes
+    # (0 substring asserts, 0 mocks, …) — never call that better.
+    if cur["test_count"] == 0:
+        lines.append("**Tally: NOT better — no tests recognized in the current "
+                     "suite; the count axes are vacuous.**")
+    else:
+        lines.append(f"**Tally: {w} wins / {l} losses / {t} ties — "
+                     f"{'BETTER' if w > l else 'NOT better'} than baseline on countable axes.**")
     return "\n".join(lines)
 
 

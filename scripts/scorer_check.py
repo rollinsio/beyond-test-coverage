@@ -95,6 +95,11 @@ def main() -> int:
             "C2_mock_framework": cur.get("C2_mock_framework"),
         })
 
+    if not results:
+        print("no repos scored (no clones on disk) — leaving the committed "
+              "results-scorer-check.{json,md} untouched", file=sys.stderr)
+        return 1
+
     payload = {
         "kind": "scorer-check",
         "note": "Baseline-only profile validation of the JS/Go scorer profiles. "

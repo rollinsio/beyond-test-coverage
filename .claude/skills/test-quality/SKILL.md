@@ -150,6 +150,12 @@ are no contract violations left and every source boundary has a test.
   body (StringSpec's `"name" { … }` and BehaviorSpec given/when/then are missed),
   and A.2 (private access) is `n/a` for Swift — `@testable import` of `internal`
   is idiomatic and `private` is unreachable (as same-package access is in Go).
+- **The counts are plain greps.** Matches inside comments and string literals
+  count (both toward the axes and toward `test_count`), and the A/B count axes
+  are absolute numbers that scale with suite size — so never optimize the
+  numbers themselves; the gate (`references/scorecard.md`) and reading the
+  tests are what keep the score honest. Known counting gaps are pinned as
+  `xfail` in `tests/test_score.py`.
 - **Other stacks** (RSpec, xUnit, JUnit-for-Java, …): the rubric and contract
   still apply by judgment. To add a first-class profile, extend `PROFILES` in
   `scripts/score.py` (file globs + a `test_def` regex + the per-axis regexes) —
