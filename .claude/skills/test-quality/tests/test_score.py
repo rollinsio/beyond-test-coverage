@@ -750,3 +750,137 @@ def test_python_b1_counts_human_readable_fixed_vector(tmp_path):
           "def test_x():\n"
           "    assert render(x) == 'Hello, world! A long fixed vector'\n")
     assert score.measure(tmp_path, "python")["B1_fixed_vector"] == 1
+
+
+# ───────────────────────── Rust (calibrated) ────────────────────────────────
+# Counts below are hand-derived by reading each fixture, never recomputed with
+# the profile's own regex. The named regressions record what real suites broke:
+# serde_json (raw-string JSON vectors), rustfmt (multi-line asserts) and
+# serde_json's lexical module (hex vectors nested in tuples/slices).
+def test_detect_lang_rust(tmp_path):
+    write(tmp_path, "tests/parse.rs", "#[test]\nfn a() {}\n")
+    assert score.detect_lang(tmp_path) == "rust"
+
+
+def test_rust_test_def_counts_attributes_but_not_cfg_test(tmp_path):
+    # 4 real tests: #[test], #[tokio::test], #[rstest], #[bench].
+    # `#[cfg(test)]` is a compilation gate, not a test — it must NOT count,
+    # otherwise every inline unit-test module inflates test_count by one.
+    write(tmp_path, "src/lib.rs",
+          "#[cfg(test)]\n"
+          "mod tests {\n"
+          "    #[test]\n    fn plain() {}\n"
+          "    #[tokio::test]\n    async fn async_flavour() {}\n"
+          "    #[rstest]\n    fn parametrized() {}\n"
+          "    #[bench]\n    fn b(_: &mut Bencher) {}\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["test_count"] == 4
+
+
+def test_rust_inline_unit_tests_under_src_are_measured(tmp_path):
+    # Rust's dominant idiom puts unit tests inline in src/ behind #[cfg(test)];
+    # a tests/-only file pattern would score those suites as empty.
+    write(tmp_path, "src/parser.rs", "#[cfg(test)]\nmod t {\n#[test]\nfn a() {}\n}\n")
+    assert score.measure(tmp_path, "rust")["test_count"] == 1
+
+
+def test_rust_a2_is_uncountable_not_zero(tmp_path):
+    # As in Go: `#[cfg(test)] mod tests` sees private items by design, and
+    # integration tests can only reach `pub`. No countable smell → None, so the
+    # axis is excluded from the W/L/T tally rather than handed a free win.
+    write(tmp_path, "tests/a.rs", "#[test]\nfn a() { assert_eq!(1, 1); }\n")
+    assert score.measure(tmp_path, "rust")["A2_private_symbol"] is None
+
+
+def test_rust_a1_counts_error_text_matching_not_collection_contains(tmp_path):
+    # 2 error-text matchers; the Vec::contains call is a legitimate assertion
+    # and must not be counted as a fragile substring match.
+    write(tmp_path, "tests/a.rs",
+          "#[test]\nfn a() {\n"
+          "    assert!(err.to_string().contains(\"bad input\"));\n"
+          "    assert!(res.unwrap_err().to_string().contains(\"nope\"));\n"
+          "    assert!(names.contains(&\"alice\"));\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["A1_substring_match"] == 2
+
+
+def test_rust_b1_raw_string_json_vector_SERDE_JSON_regression(tmp_path):
+    # `r#"{"a":1}"#` — the embedded-JSON fixture idiom. Its body contains `"`,
+    # so a `[^"\n]` class stops at the first inner quote and scores it 0.
+    write(tmp_path, "tests/a.rs",
+          "#[test]\nfn a() {\n"
+          "    assert_eq!(r#\"{\"a\":1,\"b\":{\"foo\": 2},\"c\":3}\"#, out);\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["B1_fixed_vector"] == 1
+
+
+def test_rust_b1_multiline_assert_RUSTFMT_regression(tmp_path):
+    # rustfmt splits long asserts across lines — and long literals are exactly
+    # the ones that get split, so a line-anchored pattern misses the vectors it
+    # most wants to find.
+    write(tmp_path, "tests/a.rs",
+          "#[test]\nfn a() {\n"
+          "    assert_eq!(\n"
+          "        to_string(&value).unwrap(),\n"
+          "        \"a fixed vector long enough\"\n"
+          "    );\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["B1_fixed_vector"] == 1
+
+
+def test_rust_b1_hex_vector_in_tuple_or_slice_LEXICAL_regression(tmp_path):
+    # Numeric crates park expected values in tuples and slices; anchoring the
+    # hex to the comma missed both forms. 2 asserts, 2 counts.
+    write(tmp_path, "tests/a.rs",
+          "#[test]\nfn a() {\n"
+          "    assert_eq!(big.hi64(), (0xA000000000000000, false));\n"
+          "    assert_eq!(x.data, from_u32(&[0x00140000, 0x140000]));\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["B1_fixed_vector"] == 2
+
+
+def test_rust_b1_ignores_short_literals(tmp_path):
+    # 11 chars is under the 12-char bar shared with js/kotlin/swift; 12 is over.
+    write(tmp_path, "tests/a.rs",
+          "#[test]\nfn a() {\n"
+          "    assert_eq!(fmt(x), \"elevenchars\");\n"
+          "    assert_eq!(fmt(y), \"twelvechars!\");\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["B1_fixed_vector"] == 1
+
+
+def test_rust_b1_counts_hex_bang_vectors(tmp_path):
+    # RustCrypto's `hex!("…")` is the canonical published-test-vector form.
+    write(tmp_path, "tests/a.rs",
+          "#[test]\nfn a() {\n"
+          "    assert_eq!(digest, hex!(\"ba7816bf8f01cfea\"));\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["B1_fixed_vector"] >= 1
+
+
+def test_rust_c1_counts_mockall_and_hand_written_doubles(tmp_path):
+    # 3: #[automock], a mock! block, and a hand-written MockRepo struct.
+    write(tmp_path, "tests/a.rs",
+          "#[automock]\ntrait Repo {}\n"
+          "mock! { Other {} }\n"
+          "struct MockRepo;\n"
+          "#[test]\nfn a() {}\n")
+    assert score.measure(tmp_path, "rust")["C1_mock_real"] == 3
+
+
+def test_rust_c2_counts_real_io_primitives(tmp_path):
+    # Legitimate boundary fakes — reported for context, never scored. 2 here.
+    write(tmp_path, "tests/a.rs",
+          "#[test]\nfn a() {\n"
+          "    let s = wiremock::MockServer::start().await;\n"
+          "    let d = tempfile::tempdir().unwrap();\n"
+          "}\n")
+    assert score.measure(tmp_path, "rust")["C2_mock_framework"] == 2
+
+
+def test_rust_param_counts_rstest_cases_and_proptest(tmp_path):
+    # 2 #[case] rows + 1 proptest! block = 3 parametrization signals.
+    write(tmp_path, "tests/a.rs",
+          "#[rstest]\n#[case(1)]\n#[case(2)]\nfn a(#[case] n: u8) {}\n"
+          "proptest! {\n    #[test]\n    fn b(x in 0..10u8) {}\n}\n")
+    assert score.measure(tmp_path, "rust")["parametrize"] == 3
