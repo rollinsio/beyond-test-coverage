@@ -11,19 +11,21 @@ Multi-language via per-language *profiles*. The Python/pytest profile is the
 one validated in the llm-testgen-bench quality experiment, where prompting a
 model with these axes beat human-written baselines on the auto-countable axes
 in 9 of 9 Python suites (8 of 9 with the model held fixed — the rubric, not the
-model, drove the gain). The JavaScript/TypeScript, Go, Kotlin and Swift
+model, drove the gain). The JavaScript/TypeScript, Go, Kotlin, Swift and Rust
 profiles apply the same axes with framework-appropriate regexes; they are
 heuristic and not yet empirically validated to the same degree — treat their
 numbers as a guide, and lean on judgement (read the tests) more heavily. The
 kotlin/swift regexes were calibrated against six real, well-tested suites
 (kotlinx.serialization, kotlinx-datetime, kotlin-result; swift-argument-parser,
-swift-collections, SwiftyJSON) — see tests/test_score.py for the named regressions.
+swift-collections, SwiftyJSON); the rust regexes against serde_json, rust-lang
+regex and RustCrypto hashes — see tests/test_score.py for the named regressions.
 
-Supported ``--lang``: python | js | go | kotlin | swift. Omit ``--lang`` to
-auto-detect from the files.
+Supported ``--lang``: python | js | go | kotlin | swift | rust. Omit ``--lang``
+to auto-detect from the files.
   js     = Jest / Vitest / Mocha+Chai+Sinon / node:test  (.js/.ts/.jsx/.tsx)
   kotlin = kotlin.test / JUnit5 / Kotest                 (.kt)
   swift  = XCTest / Swift Testing / Quick+Nimble          (.swift)
+  rust   = built-in #[test] / tokio::test / rstest / proptest (.rs)
 
 Auto-scored axes (direction in parens):
   A.1 substring-match assertions on error messages   (lower better)
@@ -301,6 +303,105 @@ PROFILES = {
                 r"|#(?:expect|require)\([^\n]*==\s*[\"'][^\"'\n]{12,}[\"']"
                 r"|\.to\(\s*equal\(\s*[\"'][^\"'\n]{12,}[\"']"
                 r"|(?:XCTAssertEqual|expectEqual)\([^\n]*,\s*0x[0-9a-fA-F]{8,}"
+            ),
+        },
+    },
+    # Rust (built-in #[test] / tokio::test / rstest / proptest). Heuristic.
+    "rust": {
+        "exts": [".rs"],
+        # Rust splits tests two ways and both must count: integration suites under
+        # `tests/` (and `benches/`), and unit tests inline in `src/` behind
+        # `#[cfg(test)] mod tests`. The trailing `\.rs$` branch covers the inline
+        # case (point `--tests` at `src/`), mirroring how the python profile
+        # accepts any `.py` under the directory you aim it at.
+        "test_file": r"(?:^|[/\\])(?:tests?|benches)[/\\]|_tests?\.rs$|\.rs$",
+        # `#[test]`, runtime-flavoured `#[tokio::test]`/`#[async_std::test]`,
+        # `#[bench]`, plus the rstest/test_case/proptest attributes. `#[cfg(test)]`
+        # is NOT matched: after `#[` the pattern needs `test` (or `ns::test`) to
+        # start immediately, and `cfg(` doesn't. `test_case` is added explicitly
+        # because `test\b` won't match across the `_`.
+        "test_def": (
+            r"#\[(?:\w+(?:::\w+)*::)?(?:test|bench)\b|#\[rstest\b"
+            r"|#\[test_case\(|#\[proptest\b"
+        ),
+        # rstest case rows, value lists, test_case rows and proptest! blocks are
+        # Rust's table-driven parametrization. `#[case(` (a row) counts; the bare
+        # `#[case]` that marks *which function argument* receives the row does
+        # not, or every parametrized test would score one extra.
+        "param": r"#\[case\(|#\[values\(|#\[test_case\(|\bproptest!\s*[{(]",
+        "validated": False,
+        "axes": {
+            # PARTIAL matchers on error text only — an exact `assert_eq!` against a
+            # message literal is a fixed vector (B.1), same split as python/js.
+            # Scoped to error-ish subjects so ordinary `.contains(` on collections
+            # (a legitimate assertion in Rust) isn't counted.
+            "A1_substring_match": (
+                r"\.to_string\(\)[^\n]{0,40}?\.contains\("
+                r"|\.unwrap_err\(\)[^\n]{0,60}?\.contains\("
+                r"|format!\([^\n]*\{[^\n]*\}[^\n]*\)\.contains\("
+                r"|\b(?:err|error|e|msg|message)\b[^\n]{0,30}?\.contains\("
+            ),
+            # `#[cfg(test)] mod tests` inside the module sees private items by
+            # design, and integration tests under `tests/` can only reach `pub`.
+            # So — as with go and swift — there is no countable private-access
+            # smell to score here.
+            "A2_private_symbol": None,
+            "A4_recomputed_crypto": (
+                r"\b(?:Sha1|Sha224|Sha256|Sha384|Sha512|Sha3_\d+|Md5|Md2|Md4"
+                r"|Blake2[bs]\d*|Blake3|Keccak\w*|Ripemd\d*)::(?:new|digest|new_with_prefix)\("
+                r"|\bHmac::<|\bHmac<[^\n>]+>::new"
+                r"|\bblake3::hash\(|\bmd5::compute\(|\bcrc32fast::"
+                r"|\blet\s+expected\s*[:=][^\n]*(?:\.digest\(|::digest\(|hex::encode\(|base64::)"
+            ),
+            "A5_or_joined": (
+                r"\|\|[^\n]*(?:to_string\(\)|unwrap_err\(\)|\berr\b)[^\n]*\.contains\("
+                r"|(?:to_string\(\)|unwrap_err\(\)|\berr\b)[^\n]*\.contains\([^\n]*\|\|"
+            ),
+            # mockall/faux generated doubles and hand-written Mock*/Fake*/Stub*/Spy*
+            # types standing in for the unit under test.
+            "C1_mock_real": (
+                r"#\[automock\]|#\[faux::\w+\]|\bmock!\s*\{|\bmockall::"
+                r"|\bMock[A-Z]\w*::new\(|\bstruct\s+(?:Mock|Fake|Stub|Spy)[A-Z]\w*"
+            ),
+            # Legitimate real-I/O primitives — local HTTP servers, temp dirs, CLI
+            # runners (context only, never scored).
+            "C2_mock_framework": (
+                r"\bwiremock::|\bhttpmock::|\bmockito::(?:Server|server_url|mock)\b"
+                r"|\btempfile::(?:tempdir|NamedTempFile|TempDir)|\bTempDir::new\("
+                r"|\bassert_cmd::|\bCommand::cargo_bin\(|\bassert_fs::"
+            ),
+            # Exact-literal equality against a 12+ char string (plain, raw `r#".."#`
+            # or byte `b".."`), a wide hex literal, a `hex!` vector — the RustCrypto
+            # idiom — or an insta snapshot. Rust writes `assert_eq!(actual, expected)`
+            # but either order occurs, so both positions are matched.
+            #
+            # The expected-last branch scans `[^;]{0,200}?` rather than `[^,\n]+`
+            # because rustfmt splits long asserts across lines — and long literals
+            # are exactly the ones that get split — while the first argument itself
+            # often contains commas (`assert_eq!(format!("{:?}", v), "literal")`).
+            # `[^;]` can't cross a statement boundary, so the scan stays inside one
+            # assert. Line-anchored patterns scored serde_json's suite at 12 against
+            # a hand count of 43.
+            "B1_fixed_vector": (
+                # Raw strings first: `r#"…"#` is THE idiom for embedded JSON
+                # fixtures, and its body legitimately contains `"` — so the plain
+                # `[^"\n]` class below would stop at the first inner quote and
+                # score serde_json's JSON vectors at zero.
+                r"assert_eq!\(\s*r#+\"[^\n]{12,}"
+                r"|assert_eq!\([^;]{0,200}?,\s*r#+\"[^\n]{12,}"
+                # Plain and `r"…"` (no-hash raw) literals: no inner quotes here,
+                # so the tighter class applies.
+                r"|assert_eq!\(\s*r?\"[^\"\n]{12,}"
+                r"|assert_eq!\([^;]{0,200}?,\s*r?\"[^\"\n]{12,}"
+                r"|assert_eq!\([^;]{0,200}?,\s*b\"[^\"\n]{12,}"
+                # Wide hex vectors anywhere in the call — the numeric crates wrap
+                # them in tuples and slices (`(0xA000000000000000, false)`,
+                # `from_u32(&[0x00140000, 0x140000])`), so anchoring to the comma
+                # missed them. An 8+ digit hex literal in an assert is a
+                # hand-written expected value by definition.
+                r"|assert_eq!\([^;]{0,200}?0x[0-9a-fA-F]{8,}"
+                r"|\bhex!\(\s*\"|\bhex_literal::hex!\("
+                r"|assert_(?:debug_|json_|yaml_|ron_)?snapshot!"
             ),
         },
     },

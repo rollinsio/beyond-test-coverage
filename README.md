@@ -179,7 +179,7 @@ Or score any suite directly, without the skill harness:
 
 ```bash
 python .claude/skills/test-quality/scripts/score.py \
-    --tests path/to/tests --baseline path/to/old_tests --lang python|js|go|kotlin|swift
+    --tests path/to/tests --baseline path/to/old_tests --lang python|js|go|kotlin|swift|rust
 ```
 
 The Python profile is the empirically-validated one (it drove the experiment

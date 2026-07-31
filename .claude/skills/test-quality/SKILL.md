@@ -68,8 +68,8 @@ better LOC efficiency — with every test traceable to a user-observable contrac
 
 ### 1. Scope & detect
 Identify the source package and its tests dir. Detect the **language/framework**
-(this sets the `score.py --lang` profile: `python`, `js`, `go`, `kotlin`, or
-`swift`) and the coverage-enabled test command. Determine the **mode**:
+(this sets the `score.py --lang` profile: `python`, `js`, `go`, `kotlin`, `swift`,
+or `rust`) and the coverage-enabled test command. Determine the **mode**:
 - tests exist for the target → **audit + improve** (refactor in place).
 - target is untested → **generate** a fresh suite.
 (A target can be mixed: improve what exists, generate for the gaps.)
@@ -77,7 +77,7 @@ Identify the source package and its tests dir. Detect the **language/framework**
 ### 2. Capture the baseline (do this BEFORE changing anything)
 - Run the suite with branch coverage; record line % and branch % — this is the
   coverage floor.
-- `python <skill>/scripts/score.py --tests <tests_dir> [--lang python|js|go|kotlin|swift]`
+- `python <skill>/scripts/score.py --tests <tests_dir> [--lang python|js|go|kotlin|swift|rust]`
   for the auto axes (`--lang` auto-detects if omitted).
 - Preserve the starting state so you can score against it: copy the tests dir
   aside, or note the git ref. Later runs use `--baseline <that copy>`.
@@ -141,11 +141,13 @@ are no contract violations left and every source boundary has a test.
 
 - **Validation tiers.** Python/pytest is empirically validated (the scorer's
   numbers were checked against a controlled experiment). The `js` (Jest/Vitest/
-  Mocha/node:test), `go`, `kotlin` (kotlin.test/JUnit5/Kotest), and `swift`
-  (XCTest/Swift Testing/Quick) profiles apply the same axes with heuristic
+  Mocha/node:test), `go`, `kotlin` (kotlin.test/JUnit5/Kotest), `swift`
+  (XCTest/Swift Testing/Quick) and `rust` (built-in `#[test]`/tokio::test/
+  rstest/proptest) profiles apply the same axes with heuristic
   regexes — trustworthy for trends and worst-offenders, but lean harder on
   reading the tests, and treat the W/L/T tally as indicative, not authoritative.
-  The kotlin/swift regexes were calibrated against six real, well-tested suites
+  The kotlin/swift regexes were calibrated against six real, well-tested suites,
+  and the rust ones against serde_json, rust-lang/regex and RustCrypto/hashes
   (see `tests/test_score.py` for the named regressions). Two language-specific
   notes: Kotest spec leaves are only counted when written `name(...) { … }` with a
   body (StringSpec's `"name" { … }` and BehaviorSpec given/when/then are missed),
